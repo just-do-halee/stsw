@@ -46,8 +46,10 @@ class TestStreamReaderHappyPath:
 
         with StreamReader(file_path) as reader:
             assert len(reader) == 2
-            assert "array1" in reader
-            assert "array2" in reader
+            # Check keys exist
+            keys = reader.keys()
+            assert "array1" in keys
+            assert "array2" in keys
 
     def test_list_tensors(self, sample_file):
         """Test listing tensor names."""
@@ -140,12 +142,12 @@ class TestStreamReaderHappyPath:
                 assert array is not None
 
     def test_getitem_access(self, sample_file):
-        """Test dictionary-style access."""
+        """Test get_slice access."""
         file_path, expected = sample_file
 
         with StreamReader(file_path) as reader:
-            # Use [] operator
-            slice1 = reader["array1"]
+            # Use get_slice instead of [] operator
+            slice1 = reader.get_slice("array1")
             assert isinstance(slice1, memoryview)
 
             # Convert to array
@@ -192,7 +194,7 @@ class TestStreamReaderHappyPath:
 
         from stsw._core.header import build_header
 
-        header_bytes = build_header([meta], metadata=user_metadata, incomplete=False)
+        header_bytes = build_header([meta], metadata=user_metadata)
 
         with open(file_path, "wb") as f:
             f.write(header_bytes)

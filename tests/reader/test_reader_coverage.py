@@ -327,9 +327,14 @@ class TestStreamReaderCRC:
 class TestStreamReaderTorch:
     """Test PyTorch tensor loading."""
 
-    @pytest.mark.skipif("torch" not in sys.modules, reason="PyTorch not available")
+    @pytest.mark.skipif(
+        not pytest.importorskip("torch", reason="PyTorch not available"),
+        reason="PyTorch not available",
+    )
     def test_to_torch_cpu(self, tmp_path):
         """Test loading tensor to CPU."""
+        import torch
+        
         test_file = tmp_path / "torch.safetensors"
 
         data = np.arange(10, dtype=np.float32)

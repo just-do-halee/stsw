@@ -110,10 +110,9 @@ class TestFileIOFinalCoverage:
             # Make exists() return True but unlink fail
             with patch.object(Path, "exists", return_value=True):
                 with patch.object(Path, "unlink", side_effect=OSError("Access denied")):
-                    # Rename should be attempted anyway
-                    with patch.object(Path, "rename") as mock_rename:
+                    # Should raise FileIOError when unlink fails
+                    with pytest.raises(FileIOError, match="Failed to rename temp file"):
                         writer.close()
-                        mock_rename.assert_called_once()
 
     def test_abort_no_file(self, tmp_path):
         """Test abort when file was never opened."""

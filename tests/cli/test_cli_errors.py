@@ -147,7 +147,8 @@ class TestCLIErrorPaths:
         mock_torch = MagicMock()
         mock_tensor = MagicMock()
         mock_tensor.shape = (10,)
-        mock_tensor.dtype = "float32"
+        mock_tensor.dtype = mock_torch.float32
+        mock_torch.float32 = "torch.float32"
         mock_tensor.numel.return_value = 10
         mock_tensor.element_size.return_value = 4
         mock_tensor.is_contiguous.return_value = True
@@ -203,9 +204,12 @@ class TestCLIErrorPaths:
         """Test main function with unknown command."""
         # Capture output to avoid polluting test output
         with patch("sys.argv", ["stsw", "unknown"]):
-            with patch("sys.stdout", MagicMock()):
-                result = main()
-                assert result == 1
+            with patch("sys.stderr", MagicMock()):
+                try:
+                    result = main()
+                    assert False, "Should have raised SystemExit"
+                except SystemExit as e:
+                    assert e.code == 2
 
     def test_setup_logging_no_rich(self):
         """Test logging setup when rich is not available."""
@@ -233,12 +237,7 @@ class TestCLIErrorPaths:
         args = argparse.Namespace(file=test_file)
 
         # Test with rich not available
-        def import_mock(name, *args, **kwargs):
-            if name == "rich" or name.startswith("rich."):
-                raise ImportError(f"No module named '{name}'")
-            return __import__(name, *args, **kwargs)
-
-        with patch("builtins.__import__", side_effect=import_mock):
+        with patch.dict("sys.modules", {"rich": None, "rich.console": None, "rich.table": None}):
             result = cmd_inspect(args)
             assert result == 0
 

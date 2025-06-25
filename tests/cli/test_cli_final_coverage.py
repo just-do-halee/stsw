@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 from stsw._core.header import build_header
 from stsw._core.meta import TensorMeta
-from stsw.cli.__main__ import cmd_inspect, main
+from stsw.cli.__main__ import cmd_convert, cmd_inspect, cmd_verify, main
 
 
 class TestCLIFinalCoverage:
@@ -31,8 +31,22 @@ class TestCLIFinalCoverage:
         mock_table = MagicMock()
         mock_table_class.return_value = mock_table
 
-        with patch("stsw.cli.__main__.Console", return_value=mock_console):
-            with patch("stsw.cli.__main__.Table", mock_table_class):
+        with patch("stsw.cli.__main__.StreamReader") as mock_reader_class:
+            mock_reader = MagicMock()
+            mock_reader_class.return_value.__enter__.return_value = mock_reader
+            mock_reader.__iter__.return_value = iter(["tensor"])
+            mock_reader.meta.return_value = meta
+            mock_reader.version = "1.0"
+            mock_reader.metadata = metadata
+            
+            # Mock rich imports locally within cmd_inspect
+            with patch.dict(
+                "sys.modules",
+                {
+                    "rich.console": MagicMock(Console=mock_console),
+                    "rich.table": MagicMock(Table=mock_table_class),
+                },
+            ):
                 result = cmd_inspect(args)
 
         assert result == 0
@@ -54,7 +68,7 @@ class TestCLIFinalCoverage:
         args = argparse.Namespace(file=test_file)
 
         # Force plain text output
-        with patch("builtins.__import__", side_effect=ImportError("No rich")):
+        with patch.dict("sys.modules", {"rich": None, "rich.console": None, "rich.table": None}):
             # Capture output
             with patch("builtins.print") as mock_print:
                 result = cmd_inspect(args)
@@ -81,7 +95,8 @@ class TestCLIFinalCoverage:
         mock_tensor = MagicMock()
         mock_tensor.__class__ = type("Tensor", (), {})
         mock_tensor.shape = (10,)
-        mock_tensor.dtype = "float32"
+        mock_tensor.dtype = mock_torch.float32
+        mock_torch.float32 = "torch.float32"
         mock_tensor.numel.return_value = 10
         mock_tensor.element_size.return_value = 4
         mock_tensor.is_contiguous.return_value = False  # Non-contiguous
