@@ -293,59 +293,65 @@ def cmd_selftest(args: argparse.Namespace) -> int:
 
 def main() -> int:
     """Main CLI entry point."""
-    parser = argparse.ArgumentParser(
-        prog="stsw",
-        description="Safe-Tensor Stream Suite - The last-word streaming safetensors implementation",
-    )
-    parser.add_argument("--version", action="version", version=f"stsw {__version__}")
-    parser.add_argument(
-        "-v", "--verbose", action="store_true", help="Enable verbose logging"
-    )
+    try:
+        parser = argparse.ArgumentParser(
+            prog="stsw",
+            description="Safe-Tensor Stream Suite - The last-word streaming safetensors implementation",
+        )
+        parser.add_argument("--version", action="version", version=f"stsw {__version__}")
+        parser.add_argument(
+            "-v", "--verbose", action="store_true", help="Enable verbose logging"
+        )
 
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+        subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # Inspect command
-    inspect_parser = subparsers.add_parser("inspect", help="Inspect a safetensors file")
-    inspect_parser.add_argument("file", type=Path, help="Path to safetensors file")
+        # Inspect command
+        inspect_parser = subparsers.add_parser("inspect", help="Inspect a safetensors file")
+        inspect_parser.add_argument("file", type=Path, help="Path to safetensors file")
 
-    # Verify command
-    verify_parser = subparsers.add_parser("verify", help="Verify CRC32 checksums")
-    verify_parser.add_argument("file", type=Path, help="Path to safetensors file")
+        # Verify command
+        verify_parser = subparsers.add_parser("verify", help="Verify CRC32 checksums")
+        verify_parser.add_argument("file", type=Path, help="Path to safetensors file")
 
-    # Convert command
-    convert_parser = subparsers.add_parser(
-        "convert", help="Convert PyTorch checkpoint to safetensors"
-    )
-    convert_parser.add_argument("input", type=Path, help="Input checkpoint file")
-    convert_parser.add_argument("output", type=Path, help="Output safetensors file")
-    convert_parser.add_argument(
-        "--crc32", action="store_true", help="Compute CRC32 checksums"
-    )
-    convert_parser.add_argument(
-        "--buffer-size", type=int, default=8, help="Buffer size in MB (default: 8)"
-    )
+        # Convert command
+        convert_parser = subparsers.add_parser(
+            "convert", help="Convert PyTorch checkpoint to safetensors"
+        )
+        convert_parser.add_argument("input", type=Path, help="Input checkpoint file")
+        convert_parser.add_argument("output", type=Path, help="Output safetensors file")
+        convert_parser.add_argument(
+            "--crc32", action="store_true", help="Compute CRC32 checksums"
+        )
+        convert_parser.add_argument(
+            "--buffer-size", type=int, default=8, help="Buffer size in MB (default: 8)"
+        )
 
-    # Self-test command
-    subparsers.add_parser("selftest", help="Run self-test")
+        # Self-test command
+        subparsers.add_parser("selftest", help="Run self-test")
 
-    args = parser.parse_args()
+        args = parser.parse_args()
 
-    # Setup logging
-    setup_logging(args.verbose)
+        # Setup logging
+        setup_logging(args.verbose)
 
-    # Dispatch command
-    if args.command == "inspect":
-        return cmd_inspect(args)
-    elif args.command == "verify":
-        return cmd_verify(args)
-    elif args.command == "convert":
-        return cmd_convert(args)
-    elif args.command == "selftest":
-        return cmd_selftest(args)
-    else:
-        parser.print_help()
-        return 1
+        # Dispatch command
+        if args.command == "inspect":
+            return cmd_inspect(args)
+        elif args.command == "verify":
+            return cmd_verify(args)
+        elif args.command == "convert":
+            return cmd_convert(args)
+        elif args.command == "selftest":
+            return cmd_selftest(args)
+        else:
+            parser.print_help()
+            return 1
+    except KeyboardInterrupt:
+        return 130  # Standard exit code for Ctrl+C
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        sys.exit(130)  # Standard exit code for Ctrl+C
