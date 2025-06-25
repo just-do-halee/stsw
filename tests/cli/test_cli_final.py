@@ -1,7 +1,6 @@
 """Final tests for CLI to improve coverage."""
 
 import argparse
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -20,15 +19,15 @@ class TestCLIFinal:
             crc32=False,
             buffer_size=8,
         )
-        
+
         # Mock torch to return non-dict
         mock_torch = MagicMock()
         mock_torch.load.return_value = "not a dict"
-        
+
         with patch.dict("sys.modules", {"torch": mock_torch}):
             with patch("stsw.cli.__main__.logger") as mock_logger:
                 result = cmd_convert(args)
-        
+
         assert result == 1
         mock_logger.error.assert_called_with("Input file must contain a state dict")
 
@@ -40,7 +39,7 @@ class TestCLIFinal:
             crc32=False,
             buffer_size=8,
         )
-        
+
         # Mock torch with mixed state dict
         mock_torch = MagicMock()
         mock_tensor = MagicMock()
@@ -50,7 +49,7 @@ class TestCLIFinal:
         mock_tensor.dtype = mock_torch.float32
         mock_tensor.is_contiguous.return_value = True
         mock_tensor.detach().cpu().numpy().tobytes.return_value = b"x" * 40
-        
+
         # State dict with tensor and non-tensor
         mock_torch.load.return_value = {
             "tensor": mock_tensor,
@@ -58,12 +57,12 @@ class TestCLIFinal:
         }
         mock_torch.float32 = "torch.float32"
         mock_torch.Tensor = type(mock_tensor)
-        
+
         with patch.dict("sys.modules", {"torch": mock_torch}):
             with patch("stsw.cli.__main__.normalize", return_value="F32"):
                 with patch("stsw.cli.__main__.logger") as mock_logger:
                     result = cmd_convert(args)
-        
+
         assert result == 0
         # Should warn about skipping non-tensor
         mock_logger.warning.assert_called_once()
@@ -76,7 +75,7 @@ class TestCLIFinal:
             crc32=True,  # Test with CRC
             buffer_size=1,  # Small buffer to test chunking
         )
-        
+
         # Mock torch with non-contiguous tensor
         mock_torch = MagicMock()
         mock_tensor = MagicMock()
@@ -85,7 +84,7 @@ class TestCLIFinal:
         mock_tensor.element_size.return_value = 4
         mock_tensor.dtype = mock_torch.float32
         mock_tensor.is_contiguous.return_value = False  # Not contiguous
-        
+
         # Make contiguous() return a new tensor that's also a mock
         mock_contiguous = MagicMock()
         mock_contiguous.shape = (10,)
@@ -95,16 +94,16 @@ class TestCLIFinal:
         mock_contiguous.is_contiguous.return_value = True
         mock_contiguous.detach().cpu().numpy().tobytes.return_value = b"x" * 40
         mock_tensor.contiguous.return_value = mock_contiguous
-        
+
         # Make torch.Tensor a proper type for isinstance check
         mock_torch.Tensor = type(mock_tensor)
         mock_torch.load.return_value = {"tensor": mock_tensor}
         mock_torch.float32 = "torch.float32"
-        
+
         with patch.dict("sys.modules", {"torch": mock_torch}):
             with patch("stsw.cli.__main__.normalize", return_value="F32"):
                 result = cmd_convert(args)
-        
+
         assert result == 0
         # Should have called contiguous()
         mock_tensor.contiguous.assert_called_once()
@@ -112,21 +111,24 @@ class TestCLIFinal:
     def test_selftest_write_error(self, tmp_path):
         """Test selftest with write error."""
         args = argparse.Namespace()
-        
+
         # Mock numpy
         mock_np = MagicMock()
         mock_np.random.rand.return_value.astype.return_value = MagicMock(
             dtype="float32",
             shape=(1000, 1000),
             nbytes=4000000,
-            tobytes=lambda: b"x" * 4000000
+            tobytes=lambda: b"x" * 4000000,
         )
-        
+
         with patch.dict("sys.modules", {"numpy": mock_np}):
-            with patch("stsw.cli.__main__.StreamWriter.open", side_effect=Exception("Write error")):
+            with patch(
+                "stsw.cli.__main__.StreamWriter.open",
+                side_effect=Exception("Write error"),
+            ):
                 with patch("stsw.cli.__main__.logger") as mock_logger:
                     result = cmd_selftest(args)
-        
+
         assert result == 1
         mock_logger.error.assert_called_once()
 
@@ -144,6 +146,6 @@ class TestCLIFinal:
             with patch("stsw.cli.__main__.cmd_selftest", return_value=0):
                 with patch("stsw.cli.__main__.setup_logging") as mock_setup:
                     result = main()
-        
+
         assert result == 0
         mock_setup.assert_called_once_with(True)

@@ -1,9 +1,7 @@
 """Tests for CLI module."""
 
 import argparse
-import os
 import sys
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -38,16 +36,21 @@ class TestCmdInspect:
         mock_reader.return_value = mock_instance
 
         args = argparse.Namespace(file="test.safetensors")
-        
-        # Test with rich available  
+
+        # Test with rich available
         # Patch the imports inside the function
         mock_console = MagicMock()
         mock_table = MagicMock()
-        
-        with patch.dict(sys.modules, {"rich.console": MagicMock(Console=mock_console),
-                                       "rich.table": MagicMock(Table=mock_table)}):
-                result = cmd_inspect(args)
-        
+
+        with patch.dict(
+            sys.modules,
+            {
+                "rich.console": MagicMock(Console=mock_console),
+                "rich.table": MagicMock(Table=mock_table),
+            },
+        ):
+            result = cmd_inspect(args)
+
         assert result == 0
         mock_reader.assert_called_once_with("test.safetensors", mmap=True)
 
@@ -79,12 +82,12 @@ class TestCmdInspect:
     def test_inspect_file_not_found(self, mock_reader):
         """Test inspect command with non-existent file."""
         mock_reader.side_effect = FileNotFoundError("File not found")
-        
+
         args = argparse.Namespace(file="nonexistent.safetensors")
-        
+
         with patch("stsw.cli.__main__.logger") as mock_logger:
             result = cmd_inspect(args)
-        
+
         assert result == 1
         mock_logger.error.assert_called_once()
 
@@ -92,14 +95,14 @@ class TestCmdInspect:
     def test_inspect_header_error(self, mock_reader):
         """Test inspect command with header error."""
         from stsw._core.header import HeaderError
-        
+
         mock_reader.side_effect = HeaderError("Invalid header")
-        
+
         args = argparse.Namespace(file="corrupt.safetensors")
-        
+
         with patch("stsw.cli.__main__.logger") as mock_logger:
             result = cmd_inspect(args)
-        
+
         assert result == 1
         mock_logger.error.assert_called_with("Failed to inspect file: Invalid header")
 
@@ -107,12 +110,12 @@ class TestCmdInspect:
     def test_inspect_general_error(self, mock_reader):
         """Test inspect command with general error."""
         mock_reader.side_effect = Exception("Unknown error")
-        
+
         args = argparse.Namespace(file="test.safetensors")
-        
+
         with patch("stsw.cli.__main__.logger") as mock_logger:
             result = cmd_inspect(args)
-        
+
         assert result == 1
         mock_logger.error.assert_called_with("Failed to inspect file: Unknown error")
 
@@ -137,9 +140,9 @@ class TestCmdVerify:
         mock_reader.return_value = mock_instance
 
         args = argparse.Namespace(file="test.safetensors")
-        
+
         result = cmd_verify(args)
-        
+
         assert result == 0
         assert mock_instance.get_slice.call_count == 2
 
@@ -156,9 +159,9 @@ class TestCmdVerify:
         mock_reader.return_value = mock_instance
 
         args = argparse.Namespace(file="test.safetensors")
-        
+
         result = cmd_verify(args)
-        
+
         assert result == 0
 
     @patch("stsw.cli.__main__.StreamReader")
@@ -170,30 +173,30 @@ class TestCmdVerify:
         mock_instance.__exit__.return_value = None
         mock_instance.keys.return_value = ["tensor1"]
         mock_instance.__len__.return_value = 1
-        
+
         # Create meta that will raise CRC error
         meta = TensorMeta("tensor1", "F32", (10, 20), 0, 800, crc32=12345)
         mock_instance.meta.return_value = meta
         mock_instance.get_slice.side_effect = ValueError("CRC32 mismatch")
-        
+
         mock_reader.return_value = mock_instance
 
         args = argparse.Namespace(file="test.safetensors")
-        
+
         result = cmd_verify(args)
-        
+
         assert result == 1
 
     @patch("stsw.cli.__main__.StreamReader")
     def test_verify_file_error(self, mock_reader):
         """Test verification with file error."""
         mock_reader.side_effect = Exception("File error")
-        
+
         args = argparse.Namespace(file="test.safetensors")
-        
+
         with patch("stsw.cli.__main__.logger") as mock_logger:
             result = cmd_verify(args)
-        
+
         assert result == 1
         mock_logger.error.assert_called_once()
 
@@ -209,7 +212,7 @@ class TestCmdConvert:
             crc32=False,
             buffer_size=8,
         )
-        
+
         # Mock torch
         mock_torch = MagicMock()
         mock_tensor = MagicMock()
@@ -222,14 +225,16 @@ class TestCmdConvert:
         mock_torch.load.return_value = {"weight": mock_tensor}
         mock_torch.float32 = "torch.float32"
         mock_torch.Tensor = type(mock_tensor)
-        
+
         with patch.dict(sys.modules, {"torch": mock_torch}):
             with patch("stsw.cli.__main__.normalize", return_value="F32"):
                 with patch("stsw.cli.__main__.StreamWriter") as mock_writer:
                     mock_writer_instance = MagicMock()
-                    mock_writer.open.return_value.__enter__.return_value = mock_writer_instance
+                    mock_writer.open.return_value.__enter__.return_value = (
+                        mock_writer_instance
+                    )
                     result = cmd_convert(args)
-        
+
         assert result == 0
 
     def test_convert_no_torch(self):
@@ -240,12 +245,12 @@ class TestCmdConvert:
             crc32=False,
             buffer_size=8,
         )
-        
+
         # Make torch import fail
         with patch.dict(sys.modules, {"torch": None}):
             with patch("stsw.cli.__main__.logger") as mock_logger:
                 result = cmd_convert(args)
-        
+
         assert result == 1
         mock_logger.error.assert_called_once()
 
@@ -257,11 +262,11 @@ class TestCmdConvert:
             crc32=False,
             buffer_size=8,
         )
-        
+
         # Mock torch
         mock_torch = MagicMock()
         mock_torch.load.side_effect = Exception("Load error")
-        
+
         with patch.dict(sys.modules, {"torch": mock_torch}):
             # The function doesn't catch torch.load errors, so it will raise
             with pytest.raises(Exception, match="Load error"):
@@ -274,7 +279,7 @@ class TestCmdSelftest:
     def test_selftest_success(self, tmp_path):
         """Test successful selftest."""
         args = argparse.Namespace()
-        
+
         result = cmd_selftest(args)
         assert result == 0
 
@@ -282,12 +287,12 @@ class TestCmdSelftest:
     def test_selftest_write_error(self, mock_writer_open):
         """Test selftest with write error."""
         args = argparse.Namespace()
-        
+
         mock_writer_open.side_effect = Exception("Write error")
-        
+
         with patch("stsw.cli.__main__.logger") as mock_logger:
             result = cmd_selftest(args)
-        
+
         assert result == 1
         mock_logger.error.assert_called_once()
 
@@ -301,7 +306,7 @@ class TestMain:
             with patch("stsw.cli.__main__.cmd_inspect") as mock_inspect:
                 mock_inspect.return_value = 0
                 result = main()
-        
+
         assert result == 0
         mock_inspect.assert_called_once()
 
@@ -311,7 +316,7 @@ class TestMain:
             with patch("stsw.cli.__main__.cmd_verify") as mock_verify:
                 mock_verify.return_value = 0
                 result = main()
-        
+
         assert result == 0
         mock_verify.assert_called_once()
 
@@ -321,7 +326,7 @@ class TestMain:
             with patch("stsw.cli.__main__.cmd_convert") as mock_convert:
                 mock_convert.return_value = 0
                 result = main()
-        
+
         assert result == 0
         mock_convert.assert_called_once()
 
@@ -331,7 +336,7 @@ class TestMain:
             with patch("stsw.cli.__main__.cmd_selftest") as mock_selftest:
                 mock_selftest.return_value = 0
                 result = main()
-        
+
         assert result == 0
         mock_selftest.assert_called_once()
 
@@ -347,5 +352,5 @@ class TestMain:
             with patch("stsw.cli.__main__.cmd_selftest") as mock_selftest:
                 mock_selftest.side_effect = KeyboardInterrupt()
                 result = main()
-        
+
         assert result == 130  # Standard exit code for Ctrl+C

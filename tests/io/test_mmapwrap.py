@@ -1,10 +1,9 @@
 """Tests for memory-mapped file wrapper."""
 
 import mmap
-import platform
 import warnings
 from pathlib import Path
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -20,7 +19,7 @@ class TestMMapWrapper:
         test_file = tmp_path / "test.bin"
         test_data = b"Hello, World! This is a test file."
         test_file.write_bytes(test_data)
-        
+
         with MMapWrapper(test_file) as mmap_obj:
             assert len(mmap_obj) == len(test_data)
             assert mmap_obj[0] == test_data[0]
@@ -31,7 +30,7 @@ class TestMMapWrapper:
         test_file = tmp_path / "test.bin"
         test_data = b"0123456789" * 10
         test_file.write_bytes(test_data)
-        
+
         with MMapWrapper(test_file, offset=10, length=20) as mmap_obj:
             assert len(mmap_obj) == 20
             # Should read from offset 10
@@ -42,7 +41,7 @@ class TestMMapWrapper:
         test_file = tmp_path / "test.bin"
         test_data = bytes(range(256))
         test_file.write_bytes(test_data)
-        
+
         with MMapWrapper(test_file) as mmap_obj:
             # Test various slices
             assert bytes(mmap_obj[10:20]) == test_data[10:20]
@@ -55,14 +54,14 @@ class TestMMapWrapper:
         test_file = tmp_path / "test.bin"
         test_data = b"0123456789" * 10
         test_file.write_bytes(test_data)
-        
+
         with MMapWrapper(test_file) as mmap_obj:
             # Get slice from start
             assert bytes(mmap_obj.get_slice(0, 10)) == b"0123456789"
-            
+
             # Get slice from middle
             assert bytes(mmap_obj.get_slice(50, 10)) == b"0123456789"
-            
+
             # Get rest of file
             assert bytes(mmap_obj.get_slice(90)) == b"0123456789"
 
@@ -70,11 +69,11 @@ class TestMMapWrapper:
         """Test get_slice with out of bounds."""
         test_file = tmp_path / "test.bin"
         test_file.write_bytes(b"short")
-        
+
         with MMapWrapper(test_file) as mmap_obj:
             with pytest.raises(ValueError, match="Slice out of bounds"):
                 mmap_obj.get_slice(10, 5)
-            
+
             with pytest.raises(ValueError, match="Slice out of bounds"):
                 mmap_obj.get_slice(-1, 5)
 
@@ -82,20 +81,20 @@ class TestMMapWrapper:
         """Test using MMapWrapper as context manager."""
         test_file = tmp_path / "test.bin"
         test_file.write_bytes(b"test data")
-        
+
         with MMapWrapper(test_file) as mmap_obj:
             assert len(mmap_obj) == 9
-        
+
         # mmap should be closed after context
 
     def test_explicit_close(self, tmp_path):
         """Test explicit close."""
         test_file = tmp_path / "test.bin"
         test_file.write_bytes(b"test data")
-        
+
         mmap_obj = MMapWrapper(test_file)
         assert mmap_obj._mmap is not None
-        
+
         mmap_obj.close()
         assert mmap_obj._mmap is None
         assert mmap_obj._file is None
@@ -103,7 +102,7 @@ class TestMMapWrapper:
     def test_nonexistent_file(self, tmp_path):
         """Test with non-existent file."""
         test_file = tmp_path / "nonexistent.bin"
-        
+
         with pytest.raises(FileIOError, match="Failed to stat file"):
             MMapWrapper(test_file)
 
@@ -111,7 +110,7 @@ class TestMMapWrapper:
         """Test with empty file."""
         test_file = tmp_path / "empty.bin"
         test_file.write_bytes(b"")
-        
+
         with pytest.raises(FileIOError, match="Invalid mapping length"):
             MMapWrapper(test_file)
 
@@ -119,7 +118,7 @@ class TestMMapWrapper:
         """Test read-only access mode."""
         test_file = tmp_path / "test.bin"
         test_file.write_bytes(b"readonly")
-        
+
         with MMapWrapper(test_file, access=mmap.ACCESS_READ) as mmap_obj:
             assert bytes(mmap_obj[:]) == b"readonly"
 
@@ -127,7 +126,7 @@ class TestMMapWrapper:
         """Test write access mode."""
         test_file = tmp_path / "test.bin"
         test_file.write_bytes(b"original")
-        
+
         with MMapWrapper(test_file, access=mmap.ACCESS_WRITE) as mmap_obj:
             # In real mmap, we could write here
             # But our wrapper returns memoryviews which are read-only
@@ -137,7 +136,7 @@ class TestMMapWrapper:
         """Test copy-on-write access mode."""
         test_file = tmp_path / "test.bin"
         test_file.write_bytes(b"original")
-        
+
         with MMapWrapper(test_file, access=mmap.ACCESS_COPY) as mmap_obj:
             assert len(mmap_obj) == 8
 
@@ -147,7 +146,7 @@ class TestMMapWrapper:
         # Create 1MB file
         test_data = b"x" * (1024 * 1024)
         test_file.write_bytes(test_data)
-        
+
         with MMapWrapper(test_file) as mmap_obj:
             assert len(mmap_obj) == len(test_data)
             # Read a chunk from middle
@@ -158,7 +157,7 @@ class TestMMapWrapper:
         test_file = tmp_path / "test.bin"
         test_data = b"0" * 10000
         test_file.write_bytes(test_data)
-        
+
         # Mock Windows platform
         with patch("platform.system", return_value="Windows"):
             # Use offset that's not aligned to allocation granularity
@@ -172,7 +171,7 @@ class TestMMapWrapper:
         test_file = tmp_path / "test.bin"
         test_data = b"test data"
         test_file.write_bytes(test_data)
-        
+
         with patch("platform.system", return_value="Windows"):
             with MMapWrapper(test_file) as mmap_obj:
                 assert mmap_obj._view_offset == 0
@@ -183,7 +182,7 @@ class TestMMapWrapper:
         test_file = tmp_path / "test.bin"
         test_data = b"0" * 1000
         test_file.write_bytes(test_data)
-        
+
         with patch("platform.system", return_value="Linux"):
             with MMapWrapper(test_file, offset=100, length=200) as mmap_obj:
                 # On Unix, _view_offset is not used
@@ -194,19 +193,19 @@ class TestMMapWrapper:
         test_file = tmp_path / "test.bin"
         test_data = b"fallback test data"
         test_file.write_bytes(test_data)
-        
+
         # Force mmap to fail
         with patch("mmap.mmap", side_effect=OSError("mmap failed")):
             with warnings.catch_warnings(record=True) as w:
                 warnings.simplefilter("always")
-                
+
                 with MMapWrapper(test_file) as mmap_obj:
                     assert mmap_obj._mmap is None
                     assert mmap_obj._fallback_data == test_data
                     assert len(mmap_obj) == len(test_data)
                     assert mmap_obj[5] == test_data[5]
                     assert bytes(mmap_obj[:10]) == test_data[:10]
-                
+
                 # Check warning was issued
                 assert len(w) == 1
                 assert "mmap failed" in str(w[0].message)
@@ -216,11 +215,11 @@ class TestMMapWrapper:
         test_file = tmp_path / "test.bin"
         test_data = b"0123456789" * 10
         test_file.write_bytes(test_data)
-        
+
         with patch("mmap.mmap", side_effect=ValueError("mmap failed")):
             with warnings.catch_warnings(record=True):
                 warnings.simplefilter("always")
-                
+
                 with MMapWrapper(test_file) as mmap_obj:
                     slice_data = mmap_obj.get_slice(10, 20)
                     assert bytes(slice_data) == test_data[10:30]
@@ -230,11 +229,11 @@ class TestMMapWrapper:
         test_file = tmp_path / "test.bin"
         test_data = b"0123456789" * 10
         test_file.write_bytes(test_data)
-        
+
         with patch("mmap.mmap", side_effect=OSError("mmap failed")):
             with warnings.catch_warnings(record=True):
                 warnings.simplefilter("always")
-                
+
                 with MMapWrapper(test_file, offset=20, length=30) as mmap_obj:
                     assert len(mmap_obj) == 30
                     assert bytes(mmap_obj[:]) == test_data[20:50]
@@ -244,7 +243,7 @@ class TestMMapWrapper:
         test_file = tmp_path / "test.bin"
         test_data = b"x" * 1000
         test_file.write_bytes(test_data)
-        
+
         # Test with length exceeding file size
         with MMapWrapper(test_file, offset=900, length=200) as mmap_obj:
             # Should be truncated to available size
@@ -254,21 +253,21 @@ class TestMMapWrapper:
         """Test accessing uninitialized mmap."""
         test_file = tmp_path / "test.bin"
         test_file.write_bytes(b"test")
-        
+
         mmap_obj = MMapWrapper(test_file)
         mmap_obj._mmap = None
         mmap_obj._fallback_data = None
-        
+
         with pytest.raises(RuntimeError, match="MMap not initialized"):
             _ = mmap_obj[0]
-        
+
         with pytest.raises(RuntimeError, match="MMap not initialized"):
             mmap_obj.get_slice(0, 1)
 
     def test_stat_error(self, tmp_path):
         """Test handling stat errors."""
         test_file = tmp_path / "test.bin"
-        
+
         with patch.object(Path, "stat", side_effect=OSError("Stat failed")):
             with pytest.raises(FileIOError, match="Failed to stat file"):
                 MMapWrapper(test_file)
@@ -277,11 +276,11 @@ class TestMMapWrapper:
         """Test cleanup via __del__."""
         test_file = tmp_path / "test.bin"
         test_file.write_bytes(b"test")
-        
+
         mmap_obj = MMapWrapper(test_file)
         # Simulate deletion
         mmap_obj.__del__()
-        
+
         assert mmap_obj._mmap is None
 
     def test_windows_slice_adjustment(self, tmp_path):
@@ -289,7 +288,7 @@ class TestMMapWrapper:
         test_file = tmp_path / "test.bin"
         test_data = bytes(range(256)) * 100
         test_file.write_bytes(test_data)
-        
+
         with patch("platform.system", return_value="Windows"):
             with patch("mmap.ALLOCATIONGRANULARITY", 64):
                 # Offset 100 will be aligned to 64, with view_offset = 36
@@ -297,4 +296,6 @@ class TestMMapWrapper:
                     # Test slice access
                     result = mmap_obj[10:20]
                     expected_start = 100 + 10
-                    assert bytes(result) == test_data[expected_start:expected_start + 10]
+                    assert (
+                        bytes(result) == test_data[expected_start : expected_start + 10]
+                    )

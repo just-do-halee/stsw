@@ -190,17 +190,17 @@ def validate_tensor_entry(name: str, entry: Any) -> None:
 
 def _check_json_depth(obj: Any, depth: int) -> None:
     """Recursively check JSON depth limit.
-    
+
     Args:
         obj: JSON object to check
         depth: Current recursion depth
-        
+
     Raises:
         HeaderError: If depth exceeds limit
     """
     if depth > JSON_DEPTH_LIMIT:
         raise HeaderError(f"JSON depth exceeds limit of {JSON_DEPTH_LIMIT}")
-    
+
     if isinstance(obj, dict):
         for value in obj.values():
             _check_json_depth(value, depth + 1)

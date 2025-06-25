@@ -106,7 +106,7 @@ class StreamWriter:
         align: int = 64,
         buffer_size: int = 4 << 20,  # 4 MiB as per spec
         crc32: bool = False,
-    ) -> "StreamWriter":
+    ) -> StreamWriter:
         """Open a new StreamWriter.
 
         Args:
@@ -351,7 +351,7 @@ class StreamWriter:
                 rss_mb=rss_mb,
             )
 
-    def __enter__(self) -> "StreamWriter":
+    def __enter__(self) -> StreamWriter:
         """Context manager entry."""
         return self
 

@@ -1,12 +1,7 @@
 """Final tests to achieve full coverage for CLI module."""
 
 import argparse
-import json
-from pathlib import Path
 from unittest.mock import MagicMock, patch
-
-import numpy as np
-import pytest
 
 from stsw._core.header import build_header
 from stsw._core.meta import TensorMeta
@@ -23,23 +18,23 @@ class TestCLIFinalCoverage:
         meta = TensorMeta("tensor", "F32", (10, 10), 0, 400, crc32=12345)
         metadata = {"model": "test", "version": "1.0"}
         header = build_header([meta], metadata=metadata)
-        
+
         with open(test_file, "wb") as f:
             f.write(header)
             f.write(b"\x00" * 400)
-        
+
         args = argparse.Namespace(file=test_file)
-        
+
         # Mock rich components
         mock_console = MagicMock()
         mock_table_class = MagicMock()
         mock_table = MagicMock()
         mock_table_class.return_value = mock_table
-        
+
         with patch("stsw.cli.__main__.Console", return_value=mock_console):
             with patch("stsw.cli.__main__.Table", mock_table_class):
                 result = cmd_inspect(args)
-        
+
         assert result == 0
         # Verify console methods were called
         mock_console.print.assert_called()
@@ -51,19 +46,19 @@ class TestCLIFinalCoverage:
         test_file = tmp_path / "test.safetensors"
         meta = TensorMeta("tensor_with_crc", "I64", (5,), 0, 40, crc32=67890)
         header = build_header([meta])
-        
+
         with open(test_file, "wb") as f:
             f.write(header)
             f.write(b"\x00" * 40)
-        
+
         args = argparse.Namespace(file=test_file)
-        
+
         # Force plain text output
         with patch("builtins.__import__", side_effect=ImportError("No rich")):
             # Capture output
             with patch("builtins.print") as mock_print:
                 result = cmd_inspect(args)
-        
+
         assert result == 0
         # Check that CRC was printed
         print_calls = [str(call) for call in mock_print.call_args_list]
@@ -73,14 +68,14 @@ class TestCLIFinalCoverage:
         """Test convert with non-contiguous tensor."""
         input_file = tmp_path / "input.pt"
         input_file.write_bytes(b"dummy")
-        
+
         args = argparse.Namespace(
             input=input_file,
             output=tmp_path / "output.safetensors",
             crc32=True,
-            buffer_size=2
+            buffer_size=2,
         )
-        
+
         # Mock torch
         mock_torch = MagicMock()
         mock_tensor = MagicMock()
@@ -90,20 +85,22 @@ class TestCLIFinalCoverage:
         mock_tensor.numel.return_value = 10
         mock_tensor.element_size.return_value = 4
         mock_tensor.is_contiguous.return_value = False  # Non-contiguous
-        
+
         # Mock contiguous() to return a contiguous version
         mock_contiguous = MagicMock()
-        mock_contiguous.detach.return_value.cpu.return_value.numpy.return_value.tobytes.return_value = b"x" * 40
+        mock_contiguous.detach.return_value.cpu.return_value.numpy.return_value.tobytes.return_value = (
+            b"x" * 40
+        )
         mock_tensor.contiguous.return_value = mock_contiguous
-        
+
         state_dict = {"tensor": mock_tensor}
         mock_torch.load.return_value = state_dict
         mock_torch.Tensor = mock_tensor.__class__
-        
+
         with patch.dict("sys.modules", {"torch": mock_torch}):
             with patch("stsw._core.dtype.normalize", return_value="F32"):
                 result = cmd_convert(args)
-        
+
         assert result == 0
         # Verify contiguous() was called
         mock_tensor.contiguous.assert_called()
@@ -114,7 +111,7 @@ class TestCLIFinalCoverage:
             with patch("stsw.cli.__main__.cmd_selftest", return_value=0) as mock_cmd:
                 with patch("stsw.cli.__main__.setup_logging") as mock_setup:
                     result = main()
-        
+
         assert result == 0
         mock_setup.assert_called_with(True)  # verbose=True
         mock_cmd.assert_called()
@@ -122,25 +119,25 @@ class TestCLIFinalCoverage:
     def test_verify_tensor_without_crc(self, tmp_path):
         """Test verify with tensor that has no CRC."""
         test_file = tmp_path / "test.safetensors"
-        
+
         # Create tensors - one with CRC, one without
         meta1 = TensorMeta("has_crc", "F32", (5,), 0, 20, crc32=12345)
         meta2 = TensorMeta("no_crc", "F32", (5,), 32, 52)  # No CRC
         header = build_header([meta1, meta2], align=32)
-        
+
         with open(test_file, "wb") as f:
             f.write(header)
             f.write(b"\x00" * 52)
-        
+
         args = argparse.Namespace(file=test_file)
-        
+
         # Capture output
         with patch("builtins.print") as mock_print:
             result = cmd_verify(args)
-        
+
         # Should succeed even with missing CRC
         assert result == 0
-        
+
         # Check output mentions no CRC
         print_calls = [str(call) for call in mock_print.call_args_list]
         assert any("No CRC32 stored" in call for call in print_calls)

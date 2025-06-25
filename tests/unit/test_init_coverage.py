@@ -1,9 +1,6 @@
 """Additional tests for __init__.py to improve coverage."""
 
-from unittest.mock import MagicMock, patch
-
 import numpy as np
-import pytest
 
 from stsw import dump, tqdm
 from stsw._core.meta import TensorMeta
@@ -18,10 +15,10 @@ class TestDumpCoverage:
         # Create numpy array with specific dtype
         arr = np.array([1, 2, 3], dtype=np.int32)
         state_dict = {"tensor": arr}
-        
+
         output_path = tmp_path / "test.safetensors"
         dump(state_dict, output_path)
-        
+
         assert output_path.exists()
 
     def test_dump_large_chunks(self, tmp_path):
@@ -29,11 +26,11 @@ class TestDumpCoverage:
         # Create large array (larger than default buffer size)
         large_array = np.zeros(2_000_000, dtype=np.float32)  # ~8MB
         state_dict = {"large": large_array}
-        
+
         output_path = tmp_path / "test_large.safetensors"
         # Use small buffer to force chunking
         dump(state_dict, output_path, buffer_size=1024 * 1024)  # 1MB chunks
-        
+
         assert output_path.exists()
 
 
@@ -45,11 +42,11 @@ class TestTqdmCoverage:
         # Just test basic tqdm functionality without complex mocking
         meta = TensorMeta("test", "F32", (10,), 0, 40)
         writer = StreamWriter.open(tmp_path / "test.st", [meta])
-        
+
         # Test wrap returns something
         wrapped = tqdm.wrap(writer)
         assert wrapped is not None
-        
+
         # Clean up
         writer.abort()
 
@@ -58,13 +55,13 @@ class TestTqdmCoverage:
         # Create a writer
         meta = TensorMeta("test", "F32", (10,), 0, 40)
         writer = StreamWriter.open(tmp_path / "test.st", [meta])
-        
+
         # Test without tqdm (returns original writer)
         wrapped = tqdm.wrap(writer)
-        
+
         # Abort should work
         wrapped.abort()
-        
+
         # File should not exist
         assert not (tmp_path / "test.st").exists()
 
@@ -75,12 +72,12 @@ class TestPublicAPICoverage:
     def test_all_imports_accessible(self):
         """Test all public imports are accessible."""
         import stsw
-        
+
         # Test accessing all public attributes
         assert hasattr(stsw, "__version__")
         assert hasattr(stsw, "DEFAULT_ALIGN")
         assert hasattr(stsw, "TensorMeta")
-        assert hasattr(stsw, "StreamReader") 
+        assert hasattr(stsw, "StreamReader")
         assert hasattr(stsw, "StreamWriter")
         assert hasattr(stsw, "WriterStats")
         assert hasattr(stsw, "HeaderError")

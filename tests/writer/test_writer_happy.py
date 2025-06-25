@@ -1,6 +1,5 @@
 """Happy path tests for StreamWriter."""
 
-
 import numpy as np
 
 from stsw import StreamWriter, TensorMeta

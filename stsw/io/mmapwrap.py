@@ -192,7 +192,7 @@ class MMapWrapper:
 
         self._fallback_data = None
 
-    def __enter__(self) -> "MMapWrapper":
+    def __enter__(self) -> MMapWrapper:
         """Context manager entry."""
         return self
 

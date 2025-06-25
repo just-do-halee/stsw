@@ -11,9 +11,7 @@ from stsw._core.dtype import (
     NUMPY_TO_DTYPE,
     get_itemsize,
     normalize,
-    normalize_torch,
     to_numpy,
-    to_torch,
 )
 
 
@@ -40,7 +38,7 @@ class TestNormalize:
     def test_normalize_numpy_dtype(self):
         """Test normalizing numpy dtypes."""
         import numpy as np
-        
+
         assert normalize(np.dtype("float32")) == "F32"
         assert normalize(np.dtype("int64")) == "I64"
         assert normalize(np.dtype("float16")) == "F16"
@@ -48,7 +46,7 @@ class TestNormalize:
     def test_normalize_numpy_unsupported(self):
         """Test normalizing unsupported numpy dtype."""
         import numpy as np
-        
+
         with pytest.raises(ValueError, match="Unsupported numpy dtype"):
             normalize(np.dtype("complex64"))
 
@@ -59,7 +57,7 @@ class TestNormalize:
         mock_torch = sys.modules["torch"]
         mock_dtype = MagicMock()
         mock_dtype.__str__ = lambda self: "torch.float32"
-        
+
         with patch("stsw._core.dtype.normalize_torch", return_value="F32"):
             result = normalize(mock_dtype)
             assert result == "F32"
@@ -77,11 +75,11 @@ class TestNormalizeTorch:
         """Test normalizing all supported torch dtypes."""
         # Create mock torch module
         mock_torch = MagicMock()
-        
+
         # Create dtype mocks
         dtypes = {
             "float16": "F16",
-            "float32": "F32", 
+            "float32": "F32",
             "float64": "F64",
             "int8": "I8",
             "int16": "I16",
@@ -89,15 +87,15 @@ class TestNormalizeTorch:
             "int64": "I64",
             "bfloat16": "BF16",
         }
-        
+
         for torch_name, expected in dtypes.items():
             dtype_mock = MagicMock()
             setattr(mock_torch, torch_name, dtype_mock)
-        
+
         with patch.dict(sys.modules, {"torch": mock_torch}):
             # Import inside patch context
             from stsw._core.dtype import normalize_torch
-            
+
             # Test each dtype
             assert normalize_torch(mock_torch.float16) == "F16"
             assert normalize_torch(mock_torch.float32) == "F32"
@@ -112,10 +110,10 @@ class TestNormalizeTorch:
         """Test normalizing unsupported torch dtype."""
         mock_torch = MagicMock()
         unsupported_dtype = MagicMock()
-        
+
         with patch.dict(sys.modules, {"torch": mock_torch}):
             from stsw._core.dtype import normalize_torch
-            
+
             with pytest.raises(ValueError, match="Unsupported torch dtype"):
                 normalize_torch(unsupported_dtype)
 
@@ -127,25 +125,25 @@ class TestToTorch:
         """Test converting all safetensors dtypes to torch."""
         # Create mock torch module
         mock_torch = MagicMock()
-        
+
         # Create dtype attributes
         dtype_map = {
             "float16": "F16",
             "float32": "F32",
-            "float64": "F64", 
+            "float64": "F64",
             "int8": "I8",
             "int16": "I16",
             "int32": "I32",
             "int64": "I64",
             "bfloat16": "BF16",
         }
-        
+
         for torch_name in dtype_map:
             setattr(mock_torch, torch_name, f"torch.{torch_name}")
-        
+
         with patch.dict(sys.modules, {"torch": mock_torch}):
             from stsw._core.dtype import to_torch
-            
+
             assert to_torch("F16") == "torch.float16"
             assert to_torch("F32") == "torch.float32"
             assert to_torch("F64") == "torch.float64"
@@ -158,10 +156,10 @@ class TestToTorch:
     def test_to_torch_invalid(self):
         """Test converting invalid dtype to torch."""
         mock_torch = MagicMock()
-        
+
         with patch.dict(sys.modules, {"torch": mock_torch}):
             from stsw._core.dtype import to_torch
-            
+
             with pytest.raises(ValueError, match="Invalid safetensors dtype"):
                 to_torch("INVALID")
 
@@ -172,7 +170,7 @@ class TestToNumpy:
     def test_to_numpy_all_dtypes(self):
         """Test converting all safetensors dtypes to numpy."""
         import numpy as np
-        
+
         assert to_numpy("F16") == np.dtype("float16")
         assert to_numpy("F32") == np.dtype("float32")
         assert to_numpy("F64") == np.dtype("float64")
@@ -184,7 +182,7 @@ class TestToNumpy:
     def test_to_numpy_bf16_warning(self):
         """Test BF16 conversion warning."""
         import numpy as np
-        
+
         with pytest.warns(UserWarning, match="BF16 is not natively supported"):
             dtype = to_numpy("BF16")
             assert dtype == np.dtype("float32")

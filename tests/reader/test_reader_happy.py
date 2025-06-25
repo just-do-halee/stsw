@@ -1,6 +1,5 @@
 """Happy path tests for StreamReader."""
 
-
 import numpy as np
 import pytest
 

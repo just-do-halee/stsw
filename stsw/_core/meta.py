@@ -82,7 +82,7 @@ class TensorMeta:
         return result
 
     @classmethod
-    def from_dict(cls, name: str, data: dict[str, Any]) -> "TensorMeta":
+    def from_dict(cls, name: str, data: dict[str, Any]) -> TensorMeta:
         """Create from safetensors header format."""
         if "data_offsets" not in data:
             raise ValueError(f"Missing 'data_offsets' for tensor '{name}'")

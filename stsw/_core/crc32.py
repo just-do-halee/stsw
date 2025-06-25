@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import zlib
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -59,7 +58,7 @@ class StreamingCRC32:
         """
         if self._use_xxhash:
             # XXHash has a different initial state, but we want CRC32 of empty data to be 0
-            if not hasattr(self, '_has_data'):
+            if not hasattr(self, "_has_data"):
                 return 0
             return self._hasher.intdigest() & 0xFFFFFFFF
         else:
@@ -70,10 +69,10 @@ class StreamingCRC32:
         self._crc = 0
         if self._use_xxhash:
             self._hasher.reset()
-            if hasattr(self, '_has_data'):
-                delattr(self, '_has_data')
+            if hasattr(self, "_has_data"):
+                delattr(self, "_has_data")
 
-    def copy(self) -> "StreamingCRC32":
+    def copy(self) -> StreamingCRC32:
         """Create a copy of the current CRC32 state.
 
         Returns:
@@ -85,7 +84,7 @@ class StreamingCRC32:
 
         if self._use_xxhash:
             new_crc._hasher = self._hasher.copy()
-            if hasattr(self, '_has_data'):
+            if hasattr(self, "_has_data"):
                 new_crc._has_data = True
 
         return new_crc

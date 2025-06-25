@@ -6,9 +6,7 @@ import atexit
 import os
 import platform
 from pathlib import Path
-from typing import Any, BinaryIO
-
-from typing import Union
+from typing import Any, BinaryIO, Union
 
 PathLike = Union[str, os.PathLike[str]]
 
@@ -142,7 +140,7 @@ class SafeFileWriter:
         if not self._closed and not self._aborted:
             self.abort()
 
-    def __enter__(self) -> "SafeFileWriter":
+    def __enter__(self) -> SafeFileWriter:
         """Context manager entry."""
         self.open()
         return self

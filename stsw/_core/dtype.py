@@ -80,7 +80,7 @@ def normalize(dtype: str | Any) -> DType:
     raise ValueError(f"Cannot normalize dtype: {dtype}")
 
 
-def normalize_torch(dtype: "torch.dtype") -> DType:
+def normalize_torch(dtype: torch.dtype) -> DType:
     """Convert PyTorch dtype to safetensors format.
 
     Args:
@@ -111,7 +111,7 @@ def normalize_torch(dtype: "torch.dtype") -> DType:
     return torch_to_st[dtype]
 
 
-def to_torch(dtype: DType) -> "torch.dtype":
+def to_torch(dtype: DType) -> torch.dtype:
     """Convert safetensors dtype to PyTorch dtype.
 
     Args:
@@ -142,7 +142,7 @@ def to_torch(dtype: DType) -> "torch.dtype":
     return st_to_torch[dtype]
 
 
-def to_numpy(dtype: DType) -> "np.dtype[Any]":
+def to_numpy(dtype: DType) -> np.dtype[Any]:
     """Convert safetensors dtype to numpy dtype.
 
     Args:

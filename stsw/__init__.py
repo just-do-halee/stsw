@@ -113,9 +113,7 @@ class tqdm:
                 def __getattr__(self, name: str) -> Any:
                     return getattr(self._wrapped, name)
 
-                def write_block(
-                    self, name: str, data: bytes | memoryview
-                ) -> None:
+                def write_block(self, name: str, data: bytes | memoryview) -> None:
                     result = self._wrapped.write_block(name, data)
                     self._pbar.update(len(data))
                     return result

@@ -191,7 +191,7 @@ class StreamReader:
 
         return data
 
-    def to_numpy(self, name: str) -> "np.ndarray[Any, Any]":
+    def to_numpy(self, name: str) -> np.ndarray[Any, Any]:
         """Load tensor as numpy array.
 
         Args:
@@ -216,8 +216,8 @@ class StreamReader:
             return flat_array
 
     def to_torch(
-        self, name: str, *, device: Union[str, "torch.device"] = "cpu"
-    ) -> "torch.Tensor":
+        self, name: str, *, device: Union[str, torch.device] = "cpu"
+    ) -> torch.Tensor:
         """Load tensor as PyTorch tensor.
 
         Args:
@@ -271,7 +271,7 @@ class StreamReader:
             self._mmap.close()
             self._mmap = None
 
-    def __enter__(self) -> "StreamReader":
+    def __enter__(self) -> StreamReader:
         """Context manager entry."""
         return self
 
@@ -284,7 +284,7 @@ class StreamReader:
         """Get safetensors format version."""
         return self._header_dict.get("__version__", "1.0")
 
-    @property  
+    @property
     def metadata(self) -> dict[str, Any] | None:
         """Get user metadata from header."""
         return self._header_dict.get("__metadata__")
