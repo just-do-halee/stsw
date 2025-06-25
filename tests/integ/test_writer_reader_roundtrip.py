@@ -20,7 +20,7 @@ class TestWriterReaderRoundtrip:
         tensor1_end = data1.nbytes
         tensor2_start = ((tensor1_end + 63) // 64) * 64
         tensor2_end = tensor2_start + data2.nbytes
-        
+
         metas = [
             TensorMeta("tensor1", "F32", data1.shape, 0, tensor1_end),
             TensorMeta("tensor2", "I32", data2.shape, tensor2_start, tensor2_end),
@@ -240,22 +240,21 @@ class TestWriterReaderRoundtrip:
         file_path = tmp_path / "partial.safetensors"
 
         # Write only first two tensors, mark as incomplete
-        from stsw._core.header import build_header
-        
+
         # Build header with __incomplete__ flag
         header_dict = {t.name: t.to_dict() for t in metas}
         header_dict["__incomplete__"] = True
-        
+
         # Manually create the incomplete file
-        import struct
         import json
+        import struct
         header_json = json.dumps(header_dict)
         # Pad to align=64
         padding = 64 - (len(header_json) % 64)
         if padding < 64:
             header_json += " " * padding
         header_bytes = header_json.encode("utf-8")
-        
+
         with open(file_path, "wb") as f:
             f.write(struct.pack("<Q", len(header_bytes)))
             f.write(header_bytes)

@@ -1,7 +1,6 @@
 """Tests for CLI error handling paths."""
 
 import argparse
-import builtins
 from unittest.mock import MagicMock, patch
 
 from stsw.cli.__main__ import (
@@ -146,13 +145,13 @@ class TestCLIErrorPaths:
 
         # Mock torch module
         mock_torch = MagicMock()
-        
+
         # Create a simple Tensor type
         class TensorType:
             pass
-        
+
         mock_torch.Tensor = TensorType
-        
+
         # Create mock tensors that are instances of TensorType
         mock_tensor1 = MagicMock()
         mock_tensor1.__class__ = TensorType
@@ -164,7 +163,7 @@ class TestCLIErrorPaths:
             b"x" * 40
         )
         mock_tensor1.dtype = "mock_dtype"
-        
+
         mock_tensor2 = MagicMock()
         mock_tensor2.__class__ = TensorType
         mock_tensor2.shape = (5,)
@@ -192,11 +191,11 @@ class TestCLIErrorPaths:
                     mock_writer = MagicMock()
                     mock_writer_class.open.return_value.__enter__.return_value = mock_writer
                     mock_writer_class.open.return_value.__exit__.return_value = None
-                    
+
                     # Mock logger to check warning
                     with patch("stsw.cli.__main__.logger") as mock_logger:
                         result = cmd_convert(args)
-                    
+
                     assert result == 0
                     # Check that warning was logged about skipping non-tensor
                     mock_logger.warning.assert_called_once()
@@ -235,7 +234,7 @@ class TestCLIErrorPaths:
             with patch("sys.stderr", MagicMock()):
                 try:
                     result = main()
-                    assert False, "Should have raised SystemExit"
+                    raise AssertionError("Should have raised SystemExit")
                 except SystemExit as e:
                     assert e.code == 2
 

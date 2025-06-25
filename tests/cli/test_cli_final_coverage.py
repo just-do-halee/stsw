@@ -38,7 +38,7 @@ class TestCLIFinalCoverage:
             mock_reader.meta.return_value = meta
             mock_reader.version = "1.0"
             mock_reader.metadata = metadata
-            
+
             # Mock rich imports locally within cmd_inspect
             with patch.dict(
                 "sys.modules",

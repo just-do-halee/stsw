@@ -175,9 +175,9 @@ class TestStreamReaderDataAccess:
             # mmap=False means no memory mapping
             assert reader._mmap is None
 
-            # Should raise RuntimeError when trying to get slice without mmap
-            with pytest.raises(RuntimeError, match="Memory mapping not available"):
-                reader.get_slice("tensor1")
+            # Should still work using direct file read
+            slice1 = reader.get_slice("tensor1")
+            assert bytes(slice1) == data1.tobytes()
 
     def test_get_slice_error(self, tmp_path):
         """Test get_slice() with read error."""
@@ -334,7 +334,7 @@ class TestStreamReaderTorch:
     def test_to_torch_cpu(self, tmp_path):
         """Test loading tensor to CPU."""
         import torch
-        
+
         test_file = tmp_path / "torch.safetensors"
 
         data = np.arange(10, dtype=np.float32)

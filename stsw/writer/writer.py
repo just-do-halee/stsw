@@ -148,7 +148,7 @@ class StreamWriter:
                 )
                 for t in self.tensors
             ]
-        
+
         # Build header (with incomplete marker)
         header_bytes = build_header(
             tensors_for_header,
@@ -303,9 +303,9 @@ class StreamWriter:
                 header_dict = {"__version__": "1.0"}
                 for tensor in self.tensors:
                     header_dict[tensor.name] = tensor.to_dict()  # type: ignore[assignment]
-                    
+
                 import json
-                
+
                 json_bytes = json.dumps(header_dict, separators=(",", ":")).encode(
                     "utf-8"
                 )

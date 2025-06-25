@@ -125,12 +125,20 @@ class StreamReader:
     def _open_mmap(self) -> None:
         """Open memory-mapped file."""
         file_size = get_file_size(self.path)
-        if file_size <= self._data_start:
+        data_size = file_size - self._data_start
+        
+        # Don't try to mmap if there's no data or only a tiny amount
+        if data_size <= 0:
             return  # No data to map
-
+            
+        # For very small data sections, also skip mmap
+        # as it's not efficient and can fail on some systems
+        if data_size < 4096:  # Less than one page
+            return
+            
         self._mmap = MMapWrapper(
             self.path,
-            length=file_size - self._data_start,
+            length=data_size,
             offset=self._data_start,
         )
 
@@ -169,17 +177,25 @@ class StreamReader:
 
         Raises:
             KeyError: If tensor not found
-            RuntimeError: If mmap not available
         """
         meta = self.meta(name)
 
-        if self._mmap is None:
-            raise RuntimeError("Memory mapping not available")
-
-        # Get slice
-        start = meta.offset_begin
-        length = meta.nbytes
-        data = self._mmap.get_slice(start, length)
+        if self._mmap is not None:
+            # Use memory mapping
+            start = meta.offset_begin
+            length = meta.nbytes
+            data = self._mmap.get_slice(start, length)
+        else:
+            # Fallback to direct file read when mmap is not available
+            with open(self.path, "rb") as f:
+                f.seek(self._data_start + meta.offset_begin)
+                bytes_data = f.read(meta.nbytes)
+                if len(bytes_data) != meta.nbytes:
+                    raise ValueError(
+                        f"Failed to read full tensor data for '{name}': "
+                        f"expected {meta.nbytes} bytes, got {len(bytes_data)}"
+                    )
+                data = memoryview(bytes_data)
 
         # Verify CRC if requested and not already done
         if (
