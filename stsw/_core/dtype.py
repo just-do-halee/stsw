@@ -8,7 +8,7 @@ from stsw._core.meta import VALID_DTYPES, DType
 
 if TYPE_CHECKING:
     import numpy as np
-    import torch  # type: ignore[import]  # type: ignore[import]
+    import torch
 
 
 DTYPE_TO_BYTES: dict[DType, int] = {
@@ -92,7 +92,7 @@ def normalize_torch(dtype: "torch.dtype") -> DType:
     Raises:
         ValueError: If dtype is not supported
     """
-    import torch  # type: ignore[import]
+    import torch
 
     torch_to_st: dict[torch.dtype, DType] = {
         torch.float16: "F16",
@@ -123,7 +123,7 @@ def to_torch(dtype: DType) -> "torch.dtype":
     Raises:
         ValueError: If dtype is not valid
     """
-    import torch  # type: ignore[import]
+    import torch
 
     if dtype not in VALID_DTYPES:
         raise ValueError(f"Invalid safetensors dtype: {dtype}")

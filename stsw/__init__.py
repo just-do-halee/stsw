@@ -104,7 +104,7 @@ class tqdm:
                 def __init__(self, wrapped: StreamWriter) -> None:
                     self._wrapped = wrapped
                     self._pbar = tqdm_bar(
-                        total=wrapped._total_size,
+                        total=wrapped._total_size,  # pyright: ignore[reportPrivateUsage]
                         unit="B",
                         unit_scale=True,
                         desc="Writing",
@@ -128,7 +128,7 @@ class tqdm:
                     self._pbar.close()
                     return self._wrapped.abort()
 
-            return TqdmWriter(writer)
+            return TqdmWriter(writer)  # pyright: ignore[reportReturnType]
 
         except ImportError:
             # No tqdm available, return unwrapped

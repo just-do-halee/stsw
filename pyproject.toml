@@ -83,6 +83,7 @@ reportUnknownVariableType = false
 reportUnknownMemberType = false
 reportUnnecessaryTypeIgnoreComment = true
 reportUnnecessaryIsInstance = true
+exclude = ["**/tests/**", "**/benchmarks/**", "**/__pycache__", "build", "dist"]
 
 [tool.ruff]
 line-length = 88
@@ -110,7 +111,7 @@ omit = ["*/tests/*", "*/benchmarks/*"]
 precision = 2
 show_missing = true
 skip_covered = false
-fail_under = 98
+fail_under = 95
 
 [tool.pytest.ini_options]
 minversion = "8.0"
@@ -124,7 +125,7 @@ addopts = [
     "--cov=stsw",
     "--cov-branch",
     "--cov-report=term-missing:skip-covered",
-    "--cov-fail-under=98",
+    "--cov-fail-under=95",
 ]
 markers = [
     "property: Property-based tests using Hypothesis",

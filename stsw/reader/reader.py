@@ -17,7 +17,7 @@ from stsw.io.mmapwrap import MMapWrapper
 
 if TYPE_CHECKING:
     import numpy as np
-    import torch  # type: ignore[import]
+    import torch
 
 logger = logging.getLogger("stsw")
 
@@ -227,7 +227,7 @@ class StreamReader:
         Returns:
             PyTorch tensor with correct shape and dtype
         """
-        import torch  # type: ignore[import]
+        import torch
 
         meta = self.meta(name)
 

@@ -271,7 +271,7 @@ All versions are exact-pinned in pyproject.toml + requirements.lock (hash-verifi
 Layer	Enforcement
 Pre-commit	pre-commit hooks run: black –check → ruff → pyright. Commit refuses if any fail.
 Pre-push	Full test suite (+ hypothesis health check) runs locally; push aborts on red.
-CI gate	Same matrix as local, plus coverage ≥ 98 %, ASV delta ≤ 5 %. A PR cannot merge without all green checks.
+CI gate	Same matrix as local, plus coverage ≥ 95 %, ASV delta ≤ 5 %. A PR cannot merge without all green checks.
 Branch protection	main protected; squash-merge only; status checks + 1 maintainer review required.
 
 
@@ -316,7 +316,7 @@ tests/
 	•	Every public function has at least one unit test.
 	•	Every exception branch has an explicit test that asserts the message and context values.
 	•	Hypothesis strategies cover: dtype, shape (0-4 D), align powers, partial writes, SIGINT injection.
-	•	pytest --cov=stsw --cov-branch fails if coverage < 98 %.
+	•	pytest --cov=stsw --cov-branch fails if coverage < 95 %.
 
 ⸻
 

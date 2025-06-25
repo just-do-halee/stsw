@@ -159,7 +159,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
 def cmd_convert(args: argparse.Namespace) -> int:
     """Convert a PyTorch checkpoint to safetensors format."""
     try:
-        import torch  # type: ignore[import]
+        import torch
     except ImportError:
         logger.error(
             "PyTorch is required for conversion. Install with: pip install stsw[torch]"
