@@ -1,0 +1,60 @@
+site_name: stsw - Safe-Tensor Stream Suite
+site_description: The Last-Word Safe-Tensor Stream Suite
+site_author: The stsw Authors
+site_url: https://stsw-project.github.io/stsw
+
+repo_name: stsw-project/stsw
+repo_url: https://github.com/stsw-project/stsw
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - navigation.expand
+    - navigation.sections
+    - navigation.tabs
+    - navigation.top
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: false
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - pymdownx.details
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+  - API Reference:
+      - StreamWriter: api/writer.md
+      - StreamReader: api/reader.md
+      - CLI: api/cli.md
+  - Examples:
+      - Basic Usage: examples/basic.md
+      - Advanced: examples/advanced.md
