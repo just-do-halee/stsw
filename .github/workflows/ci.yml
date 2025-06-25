@@ -45,7 +45,7 @@ jobs:
         run: black --check .
       
       - name: Run tests
-        run: pytest -v --cov=stsw --cov-report=xml
+        run: pytest -v
       
       - name: Run hypothesis tests
         run: pytest -v -m property --hypothesis-show-statistics
