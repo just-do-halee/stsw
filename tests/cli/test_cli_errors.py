@@ -1,6 +1,7 @@
 """Tests for CLI error handling paths."""
 
 import argparse
+import builtins
 from unittest.mock import MagicMock, patch
 
 from stsw.cli.__main__ import (
@@ -143,38 +144,65 @@ class TestCLIErrorPaths:
             buffer_size=4,
         )
 
-        # Mock torch
+        # Mock torch module
         mock_torch = MagicMock()
-        mock_tensor = MagicMock()
-        mock_tensor.shape = (10,)
-        mock_tensor.dtype = mock_torch.float32
-        mock_torch.float32 = "torch.float32"
-        mock_tensor.numel.return_value = 10
-        mock_tensor.element_size.return_value = 4
-        mock_tensor.is_contiguous.return_value = True
-        mock_tensor.detach.return_value.cpu.return_value.numpy.return_value.tobytes.return_value = (
+        
+        # Create a simple Tensor type
+        class TensorType:
+            pass
+        
+        mock_torch.Tensor = TensorType
+        
+        # Create mock tensors that are instances of TensorType
+        mock_tensor1 = MagicMock()
+        mock_tensor1.__class__ = TensorType
+        mock_tensor1.shape = (10,)
+        mock_tensor1.numel.return_value = 10
+        mock_tensor1.element_size.return_value = 4
+        mock_tensor1.is_contiguous.return_value = True
+        mock_tensor1.detach.return_value.cpu.return_value.numpy.return_value.tobytes.return_value = (
             b"x" * 40
         )
+        mock_tensor1.dtype = "mock_dtype"
+        
+        mock_tensor2 = MagicMock()
+        mock_tensor2.__class__ = TensorType
+        mock_tensor2.shape = (5,)
+        mock_tensor2.numel.return_value = 5
+        mock_tensor2.element_size.return_value = 4
+        mock_tensor2.is_contiguous.return_value = True
+        mock_tensor2.detach.return_value.cpu.return_value.numpy.return_value.tobytes.return_value = (
+            b"x" * 20
+        )
+        mock_tensor2.dtype = "mock_dtype"
 
-        # State dict with mixed types
+        # State dict with mixed types - one string will be skipped
         state_dict = {
-            "tensor": mock_tensor,
+            "tensor1": mock_tensor1,
             "not_tensor": "string value",  # This should be skipped
-            "another_tensor": mock_tensor,
+            "tensor2": mock_tensor2,
         }
         mock_torch.load.return_value = state_dict
-        mock_torch.Tensor = MagicMock
 
-        # Mock isinstance to identify tensors
+        # Mock normalize to return F32 for any dtype
         with patch.dict("sys.modules", {"torch": mock_torch}):
-            # Set mock_torch.Tensor to be a class we can check against
-            mock_torch.Tensor = type("MockTensor", (), {})
-            # Make the mock tensor an instance of this class
-            mock_tensor.__class__ = mock_torch.Tensor
-
-            with patch("stsw._core.dtype.normalize", return_value="F32"):
-                result = cmd_convert(args)
-                assert result == 0  # Should succeed, skipping non-tensor
+            with patch("stsw.cli.__main__.normalize", return_value="F32"):
+                with patch("stsw.cli.__main__.StreamWriter") as mock_writer_class:
+                    # Mock the writer
+                    mock_writer = MagicMock()
+                    mock_writer_class.open.return_value.__enter__.return_value = mock_writer
+                    mock_writer_class.open.return_value.__exit__.return_value = None
+                    
+                    # Mock logger to check warning
+                    with patch("stsw.cli.__main__.logger") as mock_logger:
+                        result = cmd_convert(args)
+                    
+                    assert result == 0
+                    # Check that warning was logged about skipping non-tensor
+                    mock_logger.warning.assert_called_once()
+                    warning_msg = str(mock_logger.warning.call_args)
+                    assert "not_tensor" in warning_msg
+                    assert "str" in warning_msg
 
     def test_selftest_failure(self, tmp_path):
         """Test selftest with failure."""
