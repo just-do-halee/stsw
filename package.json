@@ -1,0 +1,57 @@
+{
+  "name": "stsw",
+  "version": "1.0.0",
+  "description": "The Last-Word Safe-Tensor Stream Suite - CLI tools for streaming safetensors files",
+  "keywords": [
+    "safetensors",
+    "streaming",
+    "tensor",
+    "pytorch",
+    "numpy",
+    "machine-learning",
+    "deep-learning",
+    "cli"
+  ],
+  "homepage": "https://github.com/just-do-halee/stsw",
+  "bugs": {
+    "url": "https://github.com/just-do-halee/stsw/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/just-do-halee/stsw.git"
+  },
+  "license": "Apache-2.0",
+  "author": "just-do-halee",
+  "type": "module",
+  "types": "./npm/index.d.ts",
+  "bin": {
+    "stsw": "./npm/cli.js"
+  },
+  "files": [
+    "npm/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "postinstall": "node npm/postinstall.js",
+    "test": "node npm/test.js"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

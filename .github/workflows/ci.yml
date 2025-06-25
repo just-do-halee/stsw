@@ -1,0 +1,216 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types: [published]
+
+env:
+  PYTHONUNBUFFERED: "1"
+  FORCE_COLOR: "1"
+
+jobs:
+  matrix:
+    name: ${{ matrix.os }}-py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev,torch,numpy,xxhash]
+      
+      - name: Run pyright
+        run: pyright
+      
+      - name: Run ruff
+        run: ruff check .
+      
+      - name: Run black
+        run: black --check .
+      
+      - name: Run tests
+        run: pytest -v --cov=stsw --cov-report=xml
+      
+      - name: Run hypothesis tests
+        run: pytest -v -m property --hypothesis-show-statistics
+      
+      - name: Upload coverage
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+  
+  coverage:
+    name: Coverage Check
+    needs: matrix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev,torch,numpy,xxhash]
+      
+      - name: Run coverage
+        run: |
+          pytest --cov=stsw --cov-branch
+          coverage html
+          coverage xml
+          coverage report --fail-under=98
+  
+  benchmarks:
+    name: Performance Benchmarks
+    needs: matrix
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for ASV
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev,bench,torch,numpy]
+      
+      - name: Run benchmarks
+        run: |
+          asv machine --yes
+          asv continuous origin/main HEAD --factor 1.05
+  
+  build-wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    if: github.event_name == 'release'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel==2.16.5
+      
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: cp39-* cp310-* cp311-* cp312-*
+          CIBW_SKIP: "*-musllinux_i686"
+          CIBW_ARCHS_MACOS: x86_64 arm64
+          CIBW_TEST_REQUIRES: pytest numpy
+          CIBW_TEST_COMMAND: pytest {package}/tests/unit -v
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
+  
+  build-sdist:
+    name: Build source distribution
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Build sdist
+        run: |
+          python -m pip install build
+          python -m build --sdist
+      
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+  
+  publish:
+    name: Publish to PyPI
+    needs: [build-wheels, build-sdist, coverage]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    environment:
+      name: pypi
+      url: https://pypi.org/p/stsw
+    permissions:
+      id-token: write
+    
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          path: dist
+          merge-multiple: true
+      
+      - uses: actions/download-artifact@v4
+        with:
+          name: sdist
+          path: dist
+      
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+  
+  docs:
+    name: Build and Deploy Docs
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[docs]
+      
+      - name: Build docs
+        run: mkdocs build
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
