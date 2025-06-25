@@ -133,9 +133,25 @@ class StreamWriter:
 
     def _initialize_file(self, resume: bool) -> None:
         """Initialize file and write header."""
+        # If CRC is enabled, we need to reserve space for CRC values
+        tensors_for_header = self.tensors
+        if self.enable_crc32:
+            # Create tensors with dummy CRC values to reserve space
+            tensors_for_header = [
+                TensorMeta(
+                    name=t.name,
+                    dtype=t.dtype,
+                    shape=t.shape,
+                    offset_begin=t.offset_begin,
+                    offset_end=t.offset_end,
+                    crc32=0,  # Reserve space with dummy CRC
+                )
+                for t in self.tensors
+            ]
+        
         # Build header (with incomplete marker)
         header_bytes = build_header(
-            self.tensors,
+            tensors_for_header,
             metadata=None,
             align=self.align,
             incomplete=True,
@@ -283,16 +299,28 @@ class StreamWriter:
 
             # Update header with CRC values if enabled
             if self.enable_crc32:
-                final_header = build_header(
-                    self.tensors,
-                    metadata=None,
-                    align=self.align,
-                    incomplete=False,
+                # Build header dict with CRC values
+                header_dict = {"__version__": "1.0"}
+                for tensor in self.tensors:
+                    header_dict[tensor.name] = tensor.to_dict()  # type: ignore[assignment]
+                    
+                import json
+                
+                json_bytes = json.dumps(header_dict, separators=(",", ":")).encode(
+                    "utf-8"
                 )
+                # Ensure we pad to the same length as the original header
+                padding_needed = self._header_size - 8 - len(json_bytes)
+                if padding_needed < 0:
+                    raise ValueError(
+                        f"Header with CRC values ({len(json_bytes)} bytes) "
+                        f"exceeds allocated space ({self._header_size - 8} bytes)"
+                    )
+                padded_json = json_bytes + b" " * padding_needed
 
                 # Use pwrite to update header without seeking
                 assert self._file is not None
-                pwrite(self._file.fileno(), final_header[8:], 8)
+                pwrite(self._file.fileno(), padded_json, 8)
             else:
                 # Just remove incomplete marker
                 header_dict = {"__version__": "1.0"}

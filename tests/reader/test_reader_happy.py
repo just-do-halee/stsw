@@ -15,11 +15,14 @@ class TestStreamReaderHappyPath:
         data1 = np.arange(100, dtype=np.float32).reshape(10, 10)
         data2 = np.ones((5, 5), dtype=np.int32) * 42
 
+        # Calculate proper alignment
+        array1_end = data1.nbytes  # 400 bytes
+        array2_start = ((array1_end + 63) // 64) * 64  # Align to 64 bytes = 448
+        array2_end = array2_start + data2.nbytes  # 448 + 100 = 548
+        
         metas = [
-            TensorMeta("array1", "F32", data1.shape, 0, data1.nbytes),
-            TensorMeta(
-                "array2", "I32", data2.shape, 448, 448 + data2.nbytes
-            ),  # Aligned
+            TensorMeta("array1", "F32", data1.shape, 0, array1_end),
+            TensorMeta("array2", "I32", data2.shape, array2_start, array2_end),
         ]
 
         file_path = tmp_path / "sample.safetensors"
