@@ -218,15 +218,15 @@ class TestConstants:
 
     def test_dtype_to_bytes(self):
         """Test DTYPE_TO_BYTES mapping."""
-        assert len(DTYPE_TO_BYTES) == 8
+        assert len(DTYPE_TO_BYTES) == 9
         assert all(isinstance(v, int) for v in DTYPE_TO_BYTES.values())
 
     def test_numpy_to_dtype(self):
         """Test NUMPY_TO_DTYPE mapping."""
-        assert len(NUMPY_TO_DTYPE) == 7  # No BF16
+        assert len(NUMPY_TO_DTYPE) == 8  # No BF16
         assert all(v in DTYPE_TO_BYTES for v in NUMPY_TO_DTYPE.values())
 
     def test_dtype_to_numpy(self):
         """Test DTYPE_TO_NUMPY mapping."""
-        assert len(DTYPE_TO_NUMPY) == 8
+        assert len(DTYPE_TO_NUMPY) == 9
         assert DTYPE_TO_NUMPY["BF16"] == "float32"  # Special case

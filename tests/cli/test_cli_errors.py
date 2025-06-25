@@ -189,7 +189,9 @@ class TestCLIErrorPaths:
                 with patch("stsw.cli.__main__.StreamWriter") as mock_writer_class:
                     # Mock the writer
                     mock_writer = MagicMock()
-                    mock_writer_class.open.return_value.__enter__.return_value = mock_writer
+                    mock_writer_class.open.return_value.__enter__.return_value = (
+                        mock_writer
+                    )
                     mock_writer_class.open.return_value.__exit__.return_value = None
 
                     # Mock logger to check warning
@@ -264,7 +266,9 @@ class TestCLIErrorPaths:
         args = argparse.Namespace(file=test_file)
 
         # Test with rich not available
-        with patch.dict("sys.modules", {"rich": None, "rich.console": None, "rich.table": None}):
+        with patch.dict(
+            "sys.modules", {"rich": None, "rich.console": None, "rich.table": None}
+        ):
             result = cmd_inspect(args)
             assert result == 0
 

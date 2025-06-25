@@ -6,9 +6,9 @@ import re
 from dataclasses import dataclass
 from typing import Any, Literal
 
-DType = Literal["F16", "F32", "F64", "I8", "I16", "I32", "I64", "BF16"]
+DType = Literal["F16", "F32", "F64", "I8", "I16", "I32", "I64", "BF16", "U8"]
 
-VALID_DTYPES = {"F16", "F32", "F64", "I8", "I16", "I32", "I64", "BF16"}
+VALID_DTYPES = {"F16", "F32", "F64", "I8", "I16", "I32", "I64", "BF16", "U8"}
 NAME_PATTERN = re.compile(r"^[A-Za-z0-9_.-]{1,300}$")
 
 

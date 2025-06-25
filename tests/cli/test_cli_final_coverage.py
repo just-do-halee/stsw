@@ -26,32 +26,30 @@ class TestCLIFinalCoverage:
         args = argparse.Namespace(file=test_file)
 
         # Mock rich components
-        mock_console = MagicMock()
+        mock_console_instance = MagicMock()
+        mock_console_class = MagicMock(return_value=mock_console_instance)
         mock_table_class = MagicMock()
         mock_table = MagicMock()
         mock_table_class.return_value = mock_table
 
-        with patch("stsw.cli.__main__.StreamReader") as mock_reader_class:
-            mock_reader = MagicMock()
-            mock_reader_class.return_value.__enter__.return_value = mock_reader
-            mock_reader.__iter__.return_value = iter(["tensor"])
-            mock_reader.meta.return_value = meta
-            mock_reader.version = "1.0"
-            mock_reader.metadata = metadata
+        # Create mock modules
+        mock_rich_console = MagicMock(Console=mock_console_class)
+        mock_rich_table = MagicMock(Table=mock_table_class)
 
-            # Mock rich imports locally within cmd_inspect
-            with patch.dict(
-                "sys.modules",
-                {
-                    "rich.console": MagicMock(Console=mock_console),
-                    "rich.table": MagicMock(Table=mock_table_class),
-                },
-            ):
-                result = cmd_inspect(args)
+        # Patch the imports at the module level before the function runs
+        with patch.dict(
+            "sys.modules",
+            {
+                "rich": MagicMock(),
+                "rich.console": mock_rich_console,
+                "rich.table": mock_rich_table,
+            },
+        ):
+            result = cmd_inspect(args)
 
         assert result == 0
         # Verify console methods were called
-        mock_console.print.assert_called()
+        mock_console_instance.print.assert_called()
         mock_table.add_column.assert_called()
         mock_table.add_row.assert_called()
 
@@ -68,7 +66,9 @@ class TestCLIFinalCoverage:
         args = argparse.Namespace(file=test_file)
 
         # Force plain text output
-        with patch.dict("sys.modules", {"rich": None, "rich.console": None, "rich.table": None}):
+        with patch.dict(
+            "sys.modules", {"rich": None, "rich.console": None, "rich.table": None}
+        ):
             # Capture output
             with patch("builtins.print") as mock_print:
                 result = cmd_inspect(args)
@@ -92,11 +92,16 @@ class TestCLIFinalCoverage:
 
         # Mock torch
         mock_torch = MagicMock()
+
+        # Create a more proper mock for torch.float32
+        mock_float32 = MagicMock()
+        mock_float32.__str__.return_value = "torch.float32"
+        mock_torch.float32 = mock_float32
+
         mock_tensor = MagicMock()
         mock_tensor.__class__ = type("Tensor", (), {})
         mock_tensor.shape = (10,)
-        mock_tensor.dtype = mock_torch.float32
-        mock_torch.float32 = "torch.float32"
+        mock_tensor.dtype = mock_float32
         mock_tensor.numel.return_value = 10
         mock_tensor.element_size.return_value = 4
         mock_tensor.is_contiguous.return_value = False  # Non-contiguous
@@ -113,7 +118,7 @@ class TestCLIFinalCoverage:
         mock_torch.Tensor = mock_tensor.__class__
 
         with patch.dict("sys.modules", {"torch": mock_torch}):
-            with patch("stsw._core.dtype.normalize", return_value="F32"):
+            with patch("stsw.cli.__main__.normalize", return_value="F32"):
                 result = cmd_convert(args)
 
         assert result == 0
@@ -133,10 +138,16 @@ class TestCLIFinalCoverage:
 
     def test_verify_tensor_without_crc(self, tmp_path):
         """Test verify with tensor that has no CRC."""
+        from stsw._core.crc32 import compute_crc32
+
         test_file = tmp_path / "test.safetensors"
 
         # Create tensors - one with CRC, one without
-        meta1 = TensorMeta("has_crc", "F32", (5,), 0, 20, crc32=12345)
+        # Compute the correct CRC for the first tensor's data
+        data1 = b"\x00" * 20
+        correct_crc = compute_crc32(data1)
+
+        meta1 = TensorMeta("has_crc", "F32", (5,), 0, 20, crc32=correct_crc)
         meta2 = TensorMeta("no_crc", "F32", (5,), 32, 52)  # No CRC
         header = build_header([meta1, meta2], align=32)
 
@@ -150,9 +161,11 @@ class TestCLIFinalCoverage:
         with patch("builtins.print") as mock_print:
             result = cmd_verify(args)
 
-        # Should succeed even with missing CRC
+        # Should succeed with 0 errors
         assert result == 0
 
-        # Check output mentions no CRC
+        # Check output mentions no CRC for the second tensor
         print_calls = [str(call) for call in mock_print.call_args_list]
-        assert any("No CRC32 stored" in call for call in print_calls)
+        assert any(
+            "no_crc" in call and "No CRC32 stored" in call for call in print_calls
+        )

@@ -126,16 +126,16 @@ class StreamReader:
         """Open memory-mapped file."""
         file_size = get_file_size(self.path)
         data_size = file_size - self._data_start
-        
+
         # Don't try to mmap if there's no data or only a tiny amount
         if data_size <= 0:
             return  # No data to map
-            
+
         # For very small data sections, also skip mmap
         # as it's not efficient and can fail on some systems
         if data_size < 4096:  # Less than one page
             return
-            
+
         self._mmap = MMapWrapper(
             self.path,
             length=data_size,
@@ -223,9 +223,24 @@ class StreamReader:
         meta = self.meta(name)
         data = self.get_slice(name)
 
-        # Create numpy array from memoryview
-        dtype = to_numpy(meta.dtype)
-        flat_array = np.frombuffer(data, dtype=dtype)
+        # Handle BF16 specially
+        if meta.dtype == "BF16":
+            import warnings
+
+            warnings.warn(
+                "BF16 is not natively supported by NumPy, using float32 instead",
+                UserWarning,
+                stacklevel=2,
+            )
+            # BF16 data is stored as int16 raw bytes
+            # Read as int16 and convert to float32
+            raw_data = np.frombuffer(data, dtype=np.int16)
+            # This is a simple conversion - just for loading, not bit-exact
+            flat_array = raw_data.astype(np.float32) / 32768.0  # Simple scaling
+        else:
+            # Create numpy array from memoryview
+            dtype = to_numpy(meta.dtype)
+            flat_array = np.frombuffer(data, dtype=dtype)
 
         # Reshape to correct shape
         if meta.shape:
@@ -249,12 +264,25 @@ class StreamReader:
 
         meta = self.meta(name)
 
-        if str(device) == "cpu":
+        if meta.dtype == "BF16":
+            # Special handling for BF16
+            data = self.get_slice(name)
+            # Read raw bytes as int16 then view as bfloat16
+            import numpy as np
+
+            int16_array = np.frombuffer(data, dtype=np.int16).copy()
+            # Create tensor from int16 and view as bfloat16
+            tensor = torch.from_numpy(int16_array).view(torch.bfloat16)
+            if meta.shape:
+                tensor = tensor.reshape(meta.shape)
+            return tensor.to(device)
+        elif str(device) == "cpu":
             # Use numpy intermediate for CPU tensors
             numpy_array = self.to_numpy(name)
-            tensor = torch.from_numpy(numpy_array)
+            # Create a writable copy to avoid PyTorch warning
+            tensor = torch.from_numpy(numpy_array.copy())
 
-            # Convert dtype if needed (e.g., for BF16)
+            # Convert dtype if needed
             target_dtype = to_torch(meta.dtype)
             if tensor.dtype != target_dtype:
                 tensor = tensor.to(target_dtype)

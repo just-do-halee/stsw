@@ -20,6 +20,7 @@ DTYPE_TO_BYTES: dict[DType, int] = {
     "I32": 4,
     "I64": 8,
     "BF16": 2,
+    "U8": 1,
 }
 
 
@@ -31,6 +32,7 @@ NUMPY_TO_DTYPE: dict[str, DType] = {
     "int16": "I16",
     "int32": "I32",
     "int64": "I64",
+    "uint8": "U8",
 }
 
 
@@ -43,6 +45,7 @@ DTYPE_TO_NUMPY: dict[DType, str] = {
     "I32": "int32",
     "I64": "int64",
     "BF16": "float32",  # NumPy doesn't have native bfloat16
+    "U8": "uint8",
 }
 
 
@@ -103,6 +106,7 @@ def normalize_torch(dtype: torch.dtype) -> DType:
         torch.int32: "I32",
         torch.int64: "I64",
         torch.bfloat16: "BF16",
+        torch.uint8: "U8",
     }
 
     if dtype not in torch_to_st:
@@ -137,6 +141,7 @@ def to_torch(dtype: DType) -> torch.dtype:
         "I32": torch.int32,
         "I64": torch.int64,
         "BF16": torch.bfloat16,
+        "U8": torch.uint8,
     }
 
     return st_to_torch[dtype]
