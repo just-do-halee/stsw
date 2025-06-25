@@ -50,17 +50,17 @@ class TestNormalize:
         with pytest.raises(ValueError, match="Unsupported numpy dtype"):
             normalize(np.dtype("complex64"))
 
-    @patch("sys.modules", {"torch": MagicMock()})
     def test_normalize_torch_dtype(self):
         """Test normalizing torch dtypes."""
-        # Mock torch module
-        mock_torch = sys.modules["torch"]
+        # Create a mock object with proper string representation
         mock_dtype = MagicMock()
-        mock_dtype.__str__ = lambda self: "torch.float32"
+        mock_dtype.configure_mock(**{"__str__.return_value": "torch.float32"})
 
-        with patch("stsw._core.dtype.normalize_torch", return_value="F32"):
+        # Patch normalize_torch at the module level where normalize uses it
+        with patch("stsw._core.dtype.normalize_torch", return_value="F32") as mock_func:
             result = normalize(mock_dtype)
             assert result == "F32"
+            mock_func.assert_called_once_with(mock_dtype)
 
     def test_normalize_unknown_object(self):
         """Test normalizing unknown object."""
