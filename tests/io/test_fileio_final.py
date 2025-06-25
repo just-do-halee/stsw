@@ -1,5 +1,6 @@
 """Final tests to achieve full coverage for fileio.py."""
 
+import os
 from pathlib import Path
 from unittest.mock import patch
 
