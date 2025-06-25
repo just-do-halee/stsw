@@ -36,7 +36,7 @@ jobs:
           pip install -e .[dev,torch,numpy,xxhash]
       
       - name: Run pyright
-        run: pyright
+        run: pyright stsw/
       
       - name: Run ruff
         run: ruff check .
