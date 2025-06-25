@@ -50,8 +50,9 @@ jobs:
       - name: Run tests
         run: pytest -v
       
-      - name: Run hypothesis tests
-        run: pytest -v -m property --hypothesis-show-statistics
+      # TODO: Add property-based tests in v1.1
+      # - name: Run hypothesis tests
+      #   run: pytest -v -m property --hypothesis-show-statistics
       
       - name: Upload coverage
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
