@@ -35,6 +35,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .[dev,torch,numpy,xxhash]
       
+      - name: Test imports
+        run: python test_imports.py
+      
       - name: Run pyright
         run: pyright stsw/
       
