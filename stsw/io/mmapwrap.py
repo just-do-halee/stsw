@@ -183,7 +183,12 @@ class MMapWrapper:
     def close(self) -> None:
         """Close the memory mapping and file."""
         if self._mmap is not None:
-            self._mmap.close()
+            try:
+                self._mmap.close()
+            except BufferError:
+                # On Windows, there might still be exported pointers (memoryviews)
+                # We'll ignore this error - the OS will clean up when the process exits
+                pass
             self._mmap = None
 
         if self._file is not None:
@@ -206,4 +211,8 @@ class MMapWrapper:
 
     def __del__(self) -> None:
         """Ensure resources are cleaned up."""
-        self.close()
+        try:
+            self.close()
+        except BufferError:
+            # Ignore BufferError on cleanup - Windows might still have memoryviews alive
+            pass

@@ -84,6 +84,7 @@ class TestFileIOFinalCoverage:
         # Fsync without opening - should be no-op
         writer.fsync()
 
+    @pytest.mark.skipif(not hasattr(os, "pwrite"), reason="pwrite not available on Windows")
     def test_pwrite_unix_error(self, tmp_path):
         """Test pwrite error on Unix systems."""
         test_file = tmp_path / "test.bin"

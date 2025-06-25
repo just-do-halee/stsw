@@ -225,6 +225,7 @@ class TestPwrite:
         assert content[0:10] == b"0" * 10
         assert content[15:20] == b"0" * 5
 
+    @pytest.mark.skipif(not hasattr(os, "pwrite"), reason="pwrite not available on Windows")
     @patch("os.pwrite", side_effect=OSError("pwrite failed"))
     def test_pwrite_error(self, mock_pwrite, tmp_path):
         """Test pwrite error handling."""
