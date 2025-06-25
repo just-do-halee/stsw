@@ -104,7 +104,7 @@ target-version = ["py39", "py310", "py311", "py312"]
 [tool.coverage.run]
 branch = true
 source = ["stsw"]
-omit = ["*/tests/*", "*/benchmarks/*"]
+omit = ["*/tests/*", "*/benchmarks/*", "stsw/cli/__main__.py"]
 
 [tool.coverage.report]
 precision = 2
