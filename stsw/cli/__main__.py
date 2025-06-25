@@ -298,7 +298,9 @@ def main() -> int:
             prog="stsw",
             description="Safe-Tensor Stream Suite - The last-word streaming safetensors implementation",
         )
-        parser.add_argument("--version", action="version", version=f"stsw {__version__}")
+        parser.add_argument(
+            "--version", action="version", version=f"stsw {__version__}"
+        )
         parser.add_argument(
             "-v", "--verbose", action="store_true", help="Enable verbose logging"
         )
@@ -306,7 +308,9 @@ def main() -> int:
         subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
         # Inspect command
-        inspect_parser = subparsers.add_parser("inspect", help="Inspect a safetensors file")
+        inspect_parser = subparsers.add_parser(
+            "inspect", help="Inspect a safetensors file"
+        )
         inspect_parser.add_argument("file", type=Path, help="Path to safetensors file")
 
         # Verify command
