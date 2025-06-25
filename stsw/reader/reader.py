@@ -182,7 +182,11 @@ class StreamReader:
         data = self._mmap.get_slice(start, length)
 
         # Verify CRC if requested and not already done
-        if self.verify_crc and meta.crc32 is not None and name not in self._crc_verified:
+        if (
+            self.verify_crc
+            and meta.crc32 is not None
+            and name not in self._crc_verified
+        ):
             if not verify_crc32(data, meta.crc32):
                 raise ValueError(f"CRC32 mismatch for tensor '{name}'")
             self._crc_verified[name] = True

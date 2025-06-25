@@ -62,7 +62,9 @@ class SafeFileWriter:
             return self.file
 
         try:
-            file = open(self.temp_path, self.mode, buffering=self.buffer_size)  # noqa: SIM115
+            file = open(
+                self.temp_path, self.mode, buffering=self.buffer_size
+            )  # noqa: SIM115
             self.file = file  # type: ignore[assignment]
             return file  # type: ignore[return-value]
         except OSError as e:
