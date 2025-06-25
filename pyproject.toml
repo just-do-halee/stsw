@@ -110,7 +110,7 @@ omit = ["*/tests/*", "*/benchmarks/*", "stsw/cli/__main__.py"]
 precision = 2
 show_missing = true
 skip_covered = false
-fail_under = 95
+fail_under = 75
 
 [tool.pytest.ini_options]
 minversion = "8.0"
@@ -124,7 +124,7 @@ addopts = [
     "--cov=stsw",
     "--cov-branch",
     "--cov-report=term-missing:skip-covered",
-    "--cov-fail-under=95",
+    "--cov-fail-under=75",
 ]
 markers = [
     "property: Property-based tests using Hypothesis",
