@@ -256,7 +256,7 @@ class TestWriterReaderRoundtrip:
             np.testing.assert_array_equal(data2, loaded2)
 
             # Third tensor should fail
-            with pytest.raises(Exception):  # Could be various errors
+            with pytest.raises((ValueError, KeyError)):  # Could be various errors
                 reader.to_numpy("tensor3")
 
 

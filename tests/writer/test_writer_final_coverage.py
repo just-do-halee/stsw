@@ -1,5 +1,6 @@
 """Final tests to achieve full coverage for writer.py."""
 
+from contextlib import suppress
 from unittest.mock import patch
 
 import numpy as np
@@ -165,11 +166,8 @@ class TestWriterFinalCoverage:
         with patch("stsw.io.fileio.pwrite", side_effect=OSError("Write failed")):
             # The writer may handle the error gracefully or re-raise it
             # Just ensure close() can be called
-            try:
+            with suppress(OSError):
                 writer.close()
-            except OSError:
-                # If it does raise, that's also valid
-                pass
 
         # File should still exist either way
         assert (tmp_path / "test.st").exists()

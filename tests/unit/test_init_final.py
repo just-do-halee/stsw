@@ -14,7 +14,7 @@ class TestTqdmFullCoverage:
         """Test complete tqdm workflow with write_block and close."""
         # Import tqdm to see if it's available
         try:
-            import tqdm as real_tqdm
+            __import__("tqdm")  # Check if tqdm is available
 
             # If tqdm is installed, use it directly
             meta = TensorMeta("test", "F32", (10,), 0, 40)
@@ -98,7 +98,7 @@ class TestTqdmFullCoverage:
     def test_tqdm_with_actual_tqdm_if_available(self, tmp_path):
         """Test with actual tqdm if it's installed."""
         try:
-            import tqdm as real_tqdm
+            __import__("tqdm")  # Check if tqdm is available
 
             # If tqdm is actually installed, test with it
             meta = TensorMeta("test", "F32", (10,), 0, 40)
