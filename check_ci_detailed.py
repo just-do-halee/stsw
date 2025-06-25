@@ -20,7 +20,7 @@ def get_latest_run():
     return None
 
 
-def get_jobs(run_id):
+def get_jobs(run_id: int):
     """Get jobs for a run."""
     url = f"https://api.github.com/repos/{REPO}/actions/runs/{run_id}/jobs"
     try:

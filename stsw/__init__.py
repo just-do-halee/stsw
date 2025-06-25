@@ -7,7 +7,10 @@ so no-one ever has to rewrite them.
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from tqdm.auto import tqdm as tqdm_type  # pyright: ignore[reportUnusedImport]
 
 from stsw._core import dtype
 from stsw._core.header import HeaderError

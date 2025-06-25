@@ -7,12 +7,18 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from stsw import __version__
 from stsw._core.dtype import normalize
 from stsw._core.meta import build_aligned_offsets
 from stsw.reader.reader import StreamReader
 from stsw.writer.writer import StreamWriter
+
+if TYPE_CHECKING:
+    from rich.console import Console  # pyright: ignore[reportUnusedImport]
+    from rich.logging import RichHandler  # pyright: ignore[reportUnusedImport]
+    from rich.table import Table  # pyright: ignore[reportUnusedImport]
 
 logger = logging.getLogger("stsw")
 
@@ -53,8 +59,8 @@ def cmd_inspect(args: argparse.Namespace) -> int:
         console = Console()
         use_rich = True
     except ImportError:
-        console = None
-        Table = None
+        console: Any = None
+        Table: Any = None
         use_rich = False
 
     try:

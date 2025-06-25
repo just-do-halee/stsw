@@ -6,7 +6,7 @@ import atexit
 import os
 import platform
 from pathlib import Path
-from typing import Any, BinaryIO, Union
+from typing import Any, BinaryIO, Union, cast
 
 PathLike = Union[str, os.PathLike[str]]
 
@@ -170,7 +170,7 @@ def pwrite(fd: int, data: bytes, offset: int) -> int:
     if hasattr(os, "pwrite"):
         # Unix-like systems
         try:
-            return os.pwrite(fd, data, offset)
+            return cast(Any, os).pwrite(fd, data, offset)
         except OSError as e:
             raise FileIOError(f"pwrite failed: {e}") from e
     else:

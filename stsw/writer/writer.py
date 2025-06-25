@@ -8,7 +8,10 @@ import time
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, BinaryIO
+from typing import TYPE_CHECKING, Any, BinaryIO
+
+if TYPE_CHECKING:
+    import psutil  # pyright: ignore[reportUnusedImport]
 
 from stsw._core.crc32 import StreamingCRC32
 from stsw._core.header import build_header
