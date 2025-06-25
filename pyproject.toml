@@ -100,7 +100,13 @@ fixable = ["ALL"]
 unfixable = []
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**/*.py" = ["S101", "S105", "PLR2004"]
+"tests/**/*.py" = ["S101", "S105", "PLR2004", "SIM117", "F841", "B007", "F821"]
+"benchmarks/*.py" = ["RUF012", "F841"]
+"stsw/__init__.py" = ["F401", "N801"]
+"stsw/cli/__main__.py" = ["F401"]
+"stsw/writer/writer.py" = ["F401"]
+"test_imports.py" = ["F401", "I001"]
+"check_ci_*.py" = ["C901"]
 
 [tool.black]
 line-length = 88

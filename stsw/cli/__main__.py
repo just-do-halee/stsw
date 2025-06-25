@@ -60,7 +60,7 @@ def cmd_inspect(args: argparse.Namespace) -> int:
         use_rich = True
     except ImportError:
         console: Any = None
-        Table: Any = None
+        Table: Any = None  # noqa: N806
         use_rich = False
 
     try:

@@ -6,7 +6,7 @@ import logging
 import warnings
 from collections.abc import Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Any
 
 from stsw._core.crc32 import verify_crc32
 from stsw._core.dtype import to_numpy, to_torch
@@ -116,12 +116,11 @@ class StreamReader:
             expected_size = self._data_start + max(t.offset_end for t in self._tensors)
             actual_size = get_file_size(self.path)
 
-            if actual_size < expected_size:
-                if not self.allow_partial:
-                    raise HeaderError(
-                        f"File too small: expected {expected_size} bytes, "
-                        f"got {actual_size} bytes"
-                    )
+            if actual_size < expected_size and not self.allow_partial:
+                raise HeaderError(
+                    f"File too small: expected {expected_size} bytes, "
+                    f"got {actual_size} bytes"
+                )
 
     def _open_mmap(self) -> None:
         """Open memory-mapped file."""
@@ -183,11 +182,10 @@ class StreamReader:
         data = self._mmap.get_slice(start, length)
 
         # Verify CRC if requested and not already done
-        if self.verify_crc and meta.crc32 is not None:
-            if name not in self._crc_verified:
-                if not verify_crc32(data, meta.crc32):
-                    raise ValueError(f"CRC32 mismatch for tensor '{name}'")
-                self._crc_verified[name] = True
+        if self.verify_crc and meta.crc32 is not None and name not in self._crc_verified:
+            if not verify_crc32(data, meta.crc32):
+                raise ValueError(f"CRC32 mismatch for tensor '{name}'")
+            self._crc_verified[name] = True
 
         return data
 
@@ -216,7 +214,7 @@ class StreamReader:
             return flat_array
 
     def to_torch(
-        self, name: str, *, device: Union[str, torch.device] = "cpu"
+        self, name: str, *, device: str | torch.device = "cpu"
     ) -> torch.Tensor:
         """Load tensor as PyTorch tensor.
 
@@ -254,10 +252,7 @@ class StreamReader:
             )
 
             # Reshape and move to device
-            if meta.shape:
-                tensor = flat_tensor.reshape(meta.shape)
-            else:
-                tensor = flat_tensor
+            tensor = flat_tensor.reshape(meta.shape) if meta.shape else flat_tensor
 
             return tensor.to(device)
 

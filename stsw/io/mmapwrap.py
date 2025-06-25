@@ -71,7 +71,7 @@ class MMapWrapper:
             mode = "rb"
 
         try:
-            self._file = open(self.path, mode)
+            self._file = open(self.path, mode)  # noqa: SIM115
 
             # Platform-specific mmap creation
             if platform.system() == "Windows":

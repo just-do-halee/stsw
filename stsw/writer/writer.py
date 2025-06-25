@@ -191,10 +191,7 @@ class StreamWriter:
                 )
 
             # Convert memoryview to bytes if needed
-            if isinstance(data, memoryview):
-                data_bytes = bytes(data)
-            else:
-                data_bytes = data
+            data_bytes = bytes(data) if isinstance(data, memoryview) else data
 
             # Write data
             assert self._file_writer is not None

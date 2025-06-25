@@ -5,6 +5,7 @@ from __future__ import annotations
 import atexit
 import os
 import platform
+from contextlib import suppress
 from pathlib import Path
 from typing import Any, BinaryIO, Union, cast
 
@@ -61,7 +62,7 @@ class SafeFileWriter:
             return self.file
 
         try:
-            file = open(self.temp_path, self.mode, buffering=self.buffer_size)
+            file = open(self.temp_path, self.mode, buffering=self.buffer_size)  # noqa: SIM115
             self.file = file  # type: ignore[assignment]
             return file  # type: ignore[return-value]
         except OSError as e:
@@ -113,10 +114,9 @@ class SafeFileWriter:
 
         # Atomic rename
         try:
-            if platform.system() == "Windows":
-                # Windows doesn't support atomic rename if target exists
-                if self.path.exists():
-                    self.path.unlink()
+            # Windows doesn't support atomic rename if target exists
+            if platform.system() == "Windows" and self.path.exists():
+                self.path.unlink()
             self.temp_path.rename(self.path)
         except OSError as e:
             raise FileIOError(f"Failed to rename temp file: {e}") from e
@@ -130,10 +130,8 @@ class SafeFileWriter:
             self.file = None
 
         if self.temp_path.exists():
-            try:
+            with suppress(OSError):
                 self.temp_path.unlink()
-            except OSError:
-                pass
 
     def _cleanup(self) -> None:
         """Emergency cleanup on exit."""

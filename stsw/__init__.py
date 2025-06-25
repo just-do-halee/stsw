@@ -138,22 +138,16 @@ class tqdm:
 
 # All public exports
 __all__ = [
-    # Version
-    "__version__",
-    # Constants
     "DEFAULT_ALIGN",
-    # Core types
-    "TensorMeta",
-    # Main classes
+    "FileIOError",
+    "HeaderError",
+    "LengthMismatchError",
     "StreamReader",
     "StreamWriter",
-    "WriterStats",
-    # Errors
-    "HeaderError",
-    "FileIOError",
+    "TensorMeta",
     "TensorOrderError",
-    "LengthMismatchError",
-    # Utilities
+    "WriterStats",
+    "__version__",
     "dtype",
     "dump",
     "tqdm",
