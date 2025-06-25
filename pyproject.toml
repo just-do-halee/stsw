@@ -86,6 +86,7 @@ reportUnknownVariableType = false
 reportUnknownMemberType = false
 reportUnnecessaryTypeIgnoreComment = true
 reportUnnecessaryIsInstance = true
+reportMissingModuleSource = "warning"
 exclude = ["**/tests/**", "**/benchmarks/**", "**/__pycache__", "build", "dist"]
 
 [tool.ruff]
