@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import mmap
 import platform
 from pathlib import Path
@@ -183,12 +184,10 @@ class MMapWrapper:
     def close(self) -> None:
         """Close the memory mapping and file."""
         if self._mmap is not None:
-            try:
+            # On Windows, there might still be exported pointers (memoryviews)
+            # We'll ignore this error - the OS will clean up when the process exits
+            with contextlib.suppress(BufferError):
                 self._mmap.close()
-            except BufferError:
-                # On Windows, there might still be exported pointers (memoryviews)
-                # We'll ignore this error - the OS will clean up when the process exits
-                pass
             self._mmap = None
 
         if self._file is not None:
@@ -211,8 +210,6 @@ class MMapWrapper:
 
     def __del__(self) -> None:
         """Ensure resources are cleaned up."""
-        try:
+        # Ignore BufferError on cleanup - Windows might still have memoryviews alive
+        with contextlib.suppress(BufferError):
             self.close()
-        except BufferError:
-            # Ignore BufferError on cleanup - Windows might still have memoryviews alive
-            pass
