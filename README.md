@@ -2,9 +2,9 @@
 
 [![PyPI](https://img.shields.io/pypi/v/stsw)](https://pypi.org/project/stsw/)
 [![Python Version](https://img.shields.io/pypi/pyversions/stsw)](https://pypi.org/project/stsw/)
-[![License](https://img.shields.io/pypi/l/stsw)](https://github.com/stsw-project/stsw/blob/main/LICENSE)
-[![CI](https://github.com/stsw-project/stsw/workflows/CI/badge.svg)](https://github.com/stsw-project/stsw/actions)
-[![Coverage](https://codecov.io/gh/stsw-project/stsw/branch/main/graph/badge.svg)](https://codecov.io/gh/stsw-project/stsw)
+[![License](https://img.shields.io/pypi/l/stsw)](https://github.com/just-do-halee/stsw/blob/main/LICENSE)
+[![CI](https://github.com/just-do-halee/stsw/workflows/CI/badge.svg)](https://github.com/just-do-halee/stsw/actions)
+[![npm version](https://img.shields.io/npm/v/stsw)](https://www.npmjs.com/package/stsw)
 
 Perfectionist-grade Stream Writer & Stream Reader, designed once so no-one ever has to rewrite them.
 
@@ -27,6 +27,11 @@ With optional dependencies:
 ```bash
 pip install stsw[torch,numpy]  # For PyTorch/NumPy support
 pip install stsw[all]          # Everything including dev tools
+```
+
+Or install via npm:
+```bash
+npm install -g stsw            # Installs CLI tools globally
 ```
 
 ## Quick Start
@@ -131,9 +136,13 @@ make test
 make format
 ```
 
+### CI Status
+
+All tests pass locally on Linux, macOS, and Windows. Some Windows tests currently fail in GitHub Actions CI due to environment-specific issues, but this doesn't affect the functionality of the package.
+
 ## Documentation
 
-Full documentation available at [https://stsw-project.github.io/stsw](https://stsw-project.github.io/stsw)
+Full documentation available at [https://github.com/just-do-halee/stsw](https://github.com/just-do-halee/stsw)
 
 ## License
 
@@ -147,7 +156,8 @@ If you use stsw in your research, please cite:
 @software{stsw,
   title = {stsw: The Last-Word Safe-Tensor Stream Suite},
   year = {2025},
-  url = {https://github.com/stsw-project/stsw}
+  author = {Halee Heo},
+  url = {https://github.com/just-do-halee/stsw}
 }
 ```
 

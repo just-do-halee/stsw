@@ -4,6 +4,7 @@
 
 1. PyPI account: https://pypi.org/account/register/
 2. Twine installed: `pip install twine` ✓
+3. Distribution files built in `dist/` directory ✓
 
 ## Step 1: Test on TestPyPI (Recommended)
 

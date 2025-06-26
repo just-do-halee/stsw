@@ -60,11 +60,11 @@ docs = [
 all = ["stsw[torch,numpy,xxhash,rich,tqdm,dev,bench,docs]"]
 
 [project.urls]
-Homepage = "https://github.com/stsw-project/stsw"
-Documentation = "https://stsw-project.github.io/stsw"
-Repository = "https://github.com/stsw-project/stsw"
-Issues = "https://github.com/stsw-project/stsw/issues"
-Changelog = "https://github.com/stsw-project/stsw/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/just-do-halee/stsw"
+Documentation = "https://github.com/just-do-halee/stsw"
+Repository = "https://github.com/just-do-halee/stsw"
+Issues = "https://github.com/just-do-halee/stsw/issues"
+Changelog = "https://github.com/just-do-halee/stsw/blob/main/CHANGELOG.md"
 
 [project.scripts]
 stsw = "stsw.cli.__main__:main"

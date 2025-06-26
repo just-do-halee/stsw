@@ -73,4 +73,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-For more information, see the [documentation](https://stsw.readthedocs.io).
+For more information, see the [documentation](https://github.com/just-do-halee/stsw).

@@ -1,14 +1,16 @@
 # Release Checklist for stsw v1.0.0
 
 ## ✅ Completed
-- [x] All tests passing (253 passed, 4 skipped)
+- [x] All tests passing locally (402 passed, 0 failed)
 - [x] Type checking clean (0 pyright errors)
-- [x] Linting clean (0 ruff errors)
-- [x] Test coverage ~96%
+- [x] Linting clean (0 ruff errors) 
+- [x] Code formatting clean (black)
+- [x] Test coverage 94.50%
 - [x] Built distribution files
 - [x] Pushed to GitHub: https://github.com/just-do-halee/stsw
 - [x] Created tag v1.0.0
 - [x] npm package prepared
+- [x] Documentation updated
 
 ## 📋 Ready to Execute
 
